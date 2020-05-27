@@ -31,7 +31,7 @@ fn end_tests(fd: SceUid) {
 
 fn test_hello(fd: &SceUid) {
     unsafe {
-        psp::sys::io::sce_io_write(*fd, b"Hello CI\n" as *const u8 as *const c_void, 8);
+        psp::sys::io::sce_io_write(*fd, b"Hello CI\n" as *const u8 as *const c_void, 9);
     }
 }
 
