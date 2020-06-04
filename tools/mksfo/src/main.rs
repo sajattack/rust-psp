@@ -118,7 +118,7 @@ fn main() {
         ("CATEGORY", (EntryType::String_, false, true, true, true)), 
         ("DISC_ID", (EntryType::String_, false, false, true, true)),
         ("DISC_NUMBER", (EntryType::Dword, false, false, false, true)),
-        ("DISC_VERSION", (EntryType::String_, false, false, false, true)),
+        ("DISC_VERSION", (EntryType::String_, false, false, true, true)),
         ("DRIVER_PATH", (EntryType::String_, false, false, true, false)),
         ("LANGUAGE", (EntryType::String_, false, false, true, false)),
         ("PARENTAL_LEVEL", (EntryType::Dword, false, true, true, true)),
