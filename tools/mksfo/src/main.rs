@@ -57,7 +57,7 @@ enum EntryType {
     // TODO this type is undocumented, unused in mksfoext
     Binary = 0,
     String_ = 2,
-    Dword_ = 4,
+    Dword = 4,
 }
 
 const MAX_OPTIONS: usize = 256;
@@ -114,16 +114,16 @@ fn main() {
     dwords.insert("REGION".to_string(), 0x8000);
 
     let valid: HashMap<&'static str, (EntryType, bool, bool, bool, bool)> = [
-        ("BOOTABLE", (EntryType::Dword_, false, false, true, true)),
+        ("BOOTABLE", (EntryType::Dword, false, false, true, true)),
         ("CATEGORY", (EntryType::String_, false, true, true, true)), 
         ("DISC_ID", (EntryType::String_, false, false, true, true)),
-        ("DISC_NUMBER", (EntryType::Dword_, false, false, false, true)),
+        ("DISC_NUMBER", (EntryType::Dword, false, false, false, true)),
         ("DISC_VERSION", (EntryType::String_, false, false, false, true)),
         ("DRIVER_PATH", (EntryType::String_, false, false, true, false)),
         ("LANGUAGE", (EntryType::String_, false, false, true, false)),
-        ("PARENTAL_LEVEL", (EntryType::Dword_, false, true, true, true)),
+        ("PARENTAL_LEVEL", (EntryType::Dword, false, true, true, true)),
         ("PSP_SYSTEM_VER", (EntryType::String_, false, false, true, true)),
-        ("REGION", (EntryType::Dword_, false, false, true, true)),
+        ("REGION", (EntryType::Dword, false, false, true, true)),
         ("SAVEDATA_DETAIL", (EntryType::String_, false, true, false, false)),
         ("SAVEDATA_DIRECTORY", (EntryType::String_, false, true, false, false)),
         ("SAVEDATA_FILE_LIST", (EntryType::Binary, false, true, false, false)),
@@ -191,7 +191,7 @@ fn main() {
             panic!("Invalid option {}", key);
         }
         let (type_, wg, ms, mg, ug) = valid.get(key.as_str()).unwrap();
-        if *type_ != EntryType::Dword_ {
+        if *type_ != EntryType::Dword {
             panic!("Key {} should be a dword value", key)
         }
         if category == "WG" && !wg {
@@ -238,7 +238,7 @@ fn main() {
             key_offset,
             data_offset,
             alignment: 4,
-            type_: EntryType::Dword_ as u8,
+            type_: EntryType::Dword as u8,
             ..Default::default()
         };
         let idx = key_offset as usize;
