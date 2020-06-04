@@ -52,10 +52,12 @@ impl SfoEntry {
 }
 
 #[repr(u8)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum EntryType {
+    // TODO this type is undocumented, unused in mksfoext
     Binary = 0,
-    Text = 2,
-    Integer = 4,
+    String_ = 2,
+    Dword_ = 4,
 }
 
 const MAX_OPTIONS: usize = 256;
@@ -94,6 +96,8 @@ fn main() {
     .get_matches();
 
     let mut strings: HashMap<String, String> = HashMap::new();
+    // TODO this type is undocumented, unused in mksfoext
+    //let mut binaries: HashMap<String, Vec<u8>> = HashMap::new();
     let mut dwords: HashMap<String, u32> = HashMap::new(); 
 
     let title = matches.value_of("TITLE").unwrap();
@@ -108,6 +112,34 @@ fn main() {
     dwords.insert("BOOTABLE".to_string(), 1);
     dwords.insert("PARENTAL_LEVEL".to_string(), 1);
     dwords.insert("REGION".to_string(), 0x8000);
+
+    let valid: HashMap<&'static str, (EntryType, bool, bool, bool, bool)> = [
+        ("BOOTABLE", (EntryType::Dword_, false, false, true, true)),
+        ("CATEGORY", (EntryType::String_, false, true, true, true)), 
+        ("DISC_ID", (EntryType::String_, false, false, true, true)),
+        ("DISC_NUMBER", (EntryType::Dword_, false, false, false, true)),
+        ("DISC_VERSION", (EntryType::String_, false, false, false, true)),
+        ("DRIVER_PATH", (EntryType::String_, false, false, true, false)),
+        ("LANGUAGE", (EntryType::String_, false, false, true, false)),
+        ("PARENTAL_LEVEL", (EntryType::Dword_, false, true, true, true)),
+        ("PSP_SYSTEM_VER", (EntryType::String_, false, false, true, true)),
+        ("REGION", (EntryType::Dword_, false, false, true, true)),
+        ("SAVEDATA_DETAIL", (EntryType::String_, false, true, false, false)),
+        ("SAVEDATA_DIRECTORY", (EntryType::String_, false, true, false, false)),
+        ("SAVEDATA_FILE_LIST", (EntryType::Binary, false, true, false, false)),
+        ("SAVEDATA_PARAMS", (EntryType::Binary, false, true, false, false)),
+        ("SAVEDATA_TITLE", (EntryType::String_, false, true, false, false)),
+        ("TITLE", (EntryType::String_, false, true, true, true)),
+        ("TITLE_0", (EntryType::String_, false, true, true, true)),
+        ("TITLE_2", (EntryType::String_, false, true, true, true)),
+        ("TITLE_3", (EntryType::String_, false, true, true, true)),
+        ("TITLE_4", (EntryType::String_, false, true, true, true)),
+        ("TITLE_5", (EntryType::String_, false, true, true, true)),
+        ("TITLE_6", (EntryType::String_, false, true, true, true)),
+        ("TITLE_7", (EntryType::String_, false, true, true, true)),
+        ("TITLE_8", (EntryType::String_, false, true, true, true)),
+        ("UPDATER_VER", (EntryType::String_, false, false, true, false)),
+    ].iter().cloned().collect();
 
     if matches.values_of("string").is_some() {
         for s in matches.values_of("string").unwrap() {
@@ -125,6 +157,54 @@ fn main() {
                 key_value_pair[0].clone(),
                 str::parse::<u32>(&key_value_pair[1]).unwrap()
             );
+        }
+    }
+
+    let category = strings.get("CATEGORY").unwrap();
+
+    // TODO reduce copypasta
+
+    for (key, _value) in &strings {
+        if !valid.contains_key(key.as_str()) {
+            panic!("Invalid option {}", key);
+        }
+        let (type_, wg, ms, mg, ug) = valid.get(key.as_str()).unwrap();
+        if *type_ != EntryType::String_ {
+            panic!("Key {} should be a string value", key)
+        }
+        if category == "WG" && !wg {
+           panic!("Key {} is not valid for category WG", key); 
+        }
+        if category == "MS" && !ms {
+           panic!("Key {} is not valid for category MS", key); 
+        }
+        if category == "MG" && !mg {
+           panic!("Key {} is not valid for category MG", key); 
+        }
+        if category == "UG" && !ug {
+           panic!("Key {} is not valid for category UG", key); 
+        }
+    }
+
+    for (key, _value) in &dwords {
+        if !valid.contains_key(key.as_str()) {
+            panic!("Invalid option {}", key);
+        }
+        let (type_, wg, ms, mg, ug) = valid.get(key.as_str()).unwrap();
+        if *type_ != EntryType::Dword_ {
+            panic!("Key {} should be a dword value", key)
+        }
+        if category == "WG" && !wg {
+           panic!("Key {} is not valid for category WG", key); 
+        }
+        if category == "MS" && !ms {
+           panic!("Key {} is not valid for category MS", key); 
+        }
+        if category == "MG" && !mg {
+           panic!("Key {} is not valid for category MG", key); 
+        }
+        if category == "UG" && !ug {
+           panic!("Key {} is not valid for category UG", key); 
         }
     }
 
@@ -151,13 +231,14 @@ fn main() {
 
     let mut sfo_entries: Vec<SfoEntry> = Vec::new();
 
+    // TODO combine output for dwords and strings??
     for (key, value) in dwords {
         header.count += 1;
         let mut sfo_entry = SfoEntry {
             key_offset,
             data_offset,
             alignment: 4,
-            type_: EntryType::Integer as u8,
+            type_: EntryType::Dword_ as u8,
             ..Default::default()
         };
         let idx = key_offset as usize;
@@ -177,7 +258,7 @@ fn main() {
             key_offset,
             data_offset,
             alignment: 4,
-            type_: EntryType::Text as u8,
+            type_: EntryType::String_ as u8,
             ..Default::default()
         };
         let idx = key_offset as usize;
