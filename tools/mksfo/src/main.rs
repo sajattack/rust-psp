@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
-use core::mem;
 
 #[repr(C,packed)]
 struct SfoHeader {
@@ -14,10 +13,23 @@ struct SfoHeader {
     count: u32,
 }
 
+impl SfoHeader {
+    fn to_le_bytes(self) -> [u8;20] {
+        let mut buf = [0u8;20];
+        buf[0..=3].copy_from_slice(&self.magic.to_le_bytes());
+        buf[4..=7].copy_from_slice(&self.version.to_le_bytes());
+        buf[8..=11].copy_from_slice(&self.key_offset.to_le_bytes());
+        buf[12..=15].copy_from_slice(&self.val_offset.to_le_bytes());
+        buf[16..=19].copy_from_slice(&self.count.to_le_bytes());
+
+        buf
+    }
+}
+
 #[repr(C,packed)]
 #[derive(Default, Copy, Clone)]
 struct SfoEntry {
-    name_offset: u16,
+    key_offset: u16,
     alignment: u8,
     type_: u8,
     val_size: u32,
@@ -25,31 +37,26 @@ struct SfoEntry {
     data_offset: u32,
 }
 
-#[derive(Copy, Clone)]
-struct EntryContainer<'a> {
-    name: &'a str,
-    type_: EntryType,
-    value: u32,
-    data: Option<&'a[u8]>,
+impl SfoEntry {
+    fn to_le_bytes(self) -> [u8;16] {
+        let mut buf = [0u8;16]; 
+        buf[0..=1].copy_from_slice(&self.key_offset.to_le_bytes());
+        buf[2..=2].copy_from_slice(&self.alignment.to_le_bytes());
+        buf[3..=3].copy_from_slice(&self.type_.to_le_bytes());
+        buf[4..=7].copy_from_slice(&self.val_size.to_le_bytes());
+        buf[8..=11].copy_from_slice(&self.total_size.to_le_bytes());
+        buf[12..=15].copy_from_slice(&self.data_offset.to_le_bytes());
+
+        buf
+    }
 }
 
-#[repr(i32)]
-#[derive(Copy, Clone)]
+#[repr(u8)]
 enum EntryType {
     Binary = 0,
-    String_ = 2,
-    Value = 4,
+    Text = 2,
+    Integer = 4,
 }
-
-static DEFAULTS: [EntryContainer; 7] = [
-    EntryContainer { name: "BOOTABLE", type_: EntryType::Value, value: 1, data: None },
-    EntryContainer { name: "CATEGORY", type_: EntryType::String_, value: 0, data: Some(b"MG") },
-    EntryContainer { name: "DISC_ID", type_: EntryType::String_, value: 0, data: Some(b"UCJS10041") },
-    EntryContainer { name: "DISC_VERSION", type_: EntryType::String_, value: 0, data: Some(b"1.00") },
-    EntryContainer { name: "PARENTAL_LEVEL", type_: EntryType::Value, value: 1, data: None },
-    EntryContainer { name: "PSP_SYSTEM_VER", type_: EntryType::Value, value: 0, data: Some(b"1.00") },
-    EntryContainer { name: "REGION", type_: EntryType::Value, value: 0x8000, data: None },
-];
 
 const MAX_OPTIONS: usize = 256;
 const PSF_MAGIC: u32 = 0x46535000;
@@ -63,14 +70,14 @@ fn main() {
         .arg(Arg::with_name("dword")
             .short("d")
             .long("dword")
-            .help("NAME=VALUE Add a new DWORD value")
+            .help("key=VALUE Add a new DWORD value")
             .multiple(true)
             .takes_value(true)
         )
         .arg(Arg::with_name("string")
             .short("s")
             .long("string")
-            .help("NAME=STRING Add a new string value")
+            .help("key=STRING Add a new string value")
             .multiple(true)
             .takes_value(true)
         )
@@ -87,6 +94,21 @@ fn main() {
     .get_matches();
 
     let mut strings: HashMap<String, String> = HashMap::new();
+    let mut dwords: HashMap<String, u32> = HashMap::new(); 
+
+    let title = matches.value_of("TITLE").unwrap();
+    strings.insert("TITLE".to_string(), title.to_string());
+
+    // Default Values
+    strings.insert("CATEGORY".to_string(), "MG".to_string());
+    strings.insert("DISC_ID".to_string(), "UCJS10041".to_string());
+    strings.insert("DISC_VERSION".to_string(), "1.00".to_string());
+    strings.insert("PSP_SYSTEM_VER".to_string(), "1.00".to_string());
+
+    dwords.insert("BOOTABLE".to_string(), 1);
+    dwords.insert("PARENTAL_LEVEL".to_string(), 1);
+    dwords.insert("REGION".to_string(), 0x8000);
+
     if matches.values_of("string").is_some() {
         for s in matches.values_of("string").unwrap() {
             let key_value_pair: Vec<String> = 
@@ -94,8 +116,6 @@ fn main() {
             strings.insert(key_value_pair[0].clone(), key_value_pair[1].clone());
         }
     }
-
-    let mut dwords: HashMap<String, u32> = HashMap::new(); 
 
     if matches.values_of("dword").is_some() {
         for s in matches.values_of("dword").unwrap() {
@@ -108,10 +128,7 @@ fn main() {
         }
     }
 
-    let title = matches.value_of("TITLE");
     let outpath = Path::new(matches.value_of("output").unwrap());
-
-    let mut entries: Vec<EntryContainer> = Vec::new();
 
     let mut header = SfoHeader {
         magic: PSF_MAGIC,
@@ -121,101 +138,69 @@ fn main() {
         count: 0,
     };
 
-    for entry in DEFAULTS.iter() {
-        if !(strings.contains_key(entry.name) || dwords.contains_key(entry.name)) {
-            entries.push(*entry);
-        }
+    let num_options = dwords.len() + strings.len();
+    if num_options > MAX_OPTIONS {
+        panic!("Maximum number of options is {}, you have {}", MAX_OPTIONS, num_options);
     }
 
-    entries.push(
-        EntryContainer {
-            name: "TITLE", type_: EntryType::String_, value: 0, data: Some(title.unwrap().as_bytes())
-        }
-    );
-
-    for (key, value) in dwords.iter() {
-        if entries.len() < MAX_OPTIONS {
-            entries.push(
-                EntryContainer {
-                    name: key,
-                    type_: EntryType::Value,
-                    value: *value,
-                    data: None,
-                }
-            )
-        } else {
-            panic!("Maximum options reached");
-        }
-    }
-
-
-    for (key, value) in strings.iter() {
-        if entries.len() < MAX_OPTIONS {
-            entries.push(
-                EntryContainer {
-                    name: key,
-                    type_: EntryType::String_,
-                    value: 0,
-                    data: Some(value.as_bytes()),
-
-                }
-            )
-        } else {
-            panic!("Maximum options reached");
-        }
-    }
-
-    let mut head = [0u8; 8192]; 
     let mut keys = [0u8; 8192];
     let mut data = [0u8; 8192];
 
-    let mut name_offset = 0;
+    let mut key_offset = 0;
     let mut data_offset = 0;
 
     let mut sfo_entries: Vec<SfoEntry> = Vec::new();
 
-    for entry in entries {
+    for (key, value) in dwords {
         header.count += 1;
         let mut sfo_entry = SfoEntry {
-            name_offset,
+            key_offset,
             data_offset,
             alignment: 4,
-            type_: entry.type_ as u8,
-            ..Default::default() 
+            type_: EntryType::Integer as u8,
+            ..Default::default()
         };
-        let idx = name_offset as usize;
-        &keys[idx..idx+entry.name.len()].copy_from_slice(entry.name.as_bytes());
-        name_offset += entry.name.len() as u16 + 1;
-        match entry.type_ {
-            EntryType::Value => {
-                sfo_entry.val_size = 4;
-                sfo_entry.total_size = 4;
-                let idx = data_offset as usize;
-                data[idx..idx+4].copy_from_slice(&entry.value.to_le_bytes());
-                data_offset += 4;
-            },
-            EntryType::String_ | EntryType::Binary => {
-               let val_size = entry.data.unwrap().len()+1;
-               let total_size = (val_size + 3) & !3;
-               sfo_entry.val_size = val_size as u32;
-               sfo_entry.total_size = total_size as u32;
-               let idx = data_offset as usize;
-               let unwrapped_data = entry.data.unwrap();
-               data[idx..idx + unwrapped_data.len()].copy_from_slice(
-                   unwrapped_data
-                );
-               data_offset += total_size as u32;
-            },
-        }
+        let idx = key_offset as usize;
+        &keys[idx..idx+key.len()].copy_from_slice(key.as_bytes());
+        key_offset += key.len() as u16 + 1;
+        sfo_entry.val_size = 4;
+        sfo_entry.total_size = 4;
+        let idx = data_offset as usize;
+        data[idx..idx+4].copy_from_slice(&value.to_le_bytes());
+        data_offset += 4;
         sfo_entries.push(sfo_entry);
     }
-    let mut file = File::create(outpath).unwrap();
-    let temp = unsafe { mem::transmute::<_, [u8;20]>(header) };
-    head[0..20].copy_from_slice(&temp);
-    file.write_all(&head[0..20]);
-    for entry in sfo_entries {
-        file.write_all(unsafe { &mem::transmute::<_, [u8;16]>(entry) });
+
+    for (key, value) in strings {
+        header.count += 1;
+        let mut sfo_entry = SfoEntry {
+            key_offset,
+            data_offset,
+            alignment: 4,
+            type_: EntryType::Text as u8,
+            ..Default::default()
+        };
+        let idx = key_offset as usize;
+        &keys[idx..idx+key.len()].copy_from_slice(key.as_bytes());
+        key_offset += key.len() as u16 + 1;
+
+        let val_size = value.len()+1;
+        let total_size = (val_size + 3) & !3;
+        sfo_entry.val_size = val_size as u32;
+        sfo_entry.total_size = total_size as u32;
+        let idx = data_offset as usize;
+        data[idx..idx + value.len()].copy_from_slice(
+            value.as_bytes()
+        );
+        data_offset += total_size as u32;
+        sfo_entries.push(sfo_entry);
     }
-    file.write_all(&keys[0..name_offset as usize]);
-    file.write_all(&data[0..data_offset as usize]);
+
+    let mut file = File::create(outpath).unwrap();
+    file.write_all(&header.to_le_bytes()).unwrap();
+    for sfo_entry in sfo_entries {
+        file.write_all(&sfo_entry.to_le_bytes()).unwrap();
+    }
+    file.write_all(&keys[0..key_offset as usize]).unwrap();
+    file.write_all(&data[0..data_offset as usize]).unwrap();
 }
