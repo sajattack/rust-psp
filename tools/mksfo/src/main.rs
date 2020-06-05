@@ -171,7 +171,7 @@ fn main() {
         }
         let (type_, wg, ms, mg, ug) = valid.get(key.as_str()).unwrap();
         if *type_ != EntryType::String_ {
-            panic!("Key {} should be a string value", key)
+            panic!("Key {} does not take a string value", key)
         }
         if category == "WG" && !wg {
            panic!("Key {} is not valid for category WG", key); 
@@ -193,7 +193,7 @@ fn main() {
         }
         let (type_, wg, ms, mg, ug) = valid.get(key.as_str()).unwrap();
         if *type_ != EntryType::Dword {
-            panic!("Key {} should be a dword value", key)
+            panic!("Key {} does not take a dword value", key)
         }
         if category == "WG" && !wg {
            panic!("Key {} is not valid for category WG", key); 
