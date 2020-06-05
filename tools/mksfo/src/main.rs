@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::SeekFrom;
 
 #[repr(C,packed)]
 struct SfoHeader {
@@ -277,11 +278,21 @@ fn main() {
         sfo_entries.push(sfo_entry);
     }
 
+    header.key_offset = (
+        core::mem::size_of::<SfoHeader>() +
+        sfo_entries.len() *
+        core::mem::size_of::<SfoEntry>()
+    ) as u32;
+
+    let aligned_val_offset = (header.key_offset + key_offset as u32 + 3) & !3;
+    header.val_offset = aligned_val_offset;
+
     let mut file = File::create(outpath).unwrap();
     file.write_all(&header.to_le_bytes()).unwrap();
     for sfo_entry in sfo_entries {
         file.write_all(&sfo_entry.to_le_bytes()).unwrap();
     }
     file.write_all(&keys[0..key_offset as usize]).unwrap();
-    file.write_all(&data[0..data_offset as usize]).unwrap();
+    file.seek(SeekFrom::Start(aligned_val_offset as u64)).unwrap();
+    file.write(&data[0..data_offset as usize]).unwrap();
 }
