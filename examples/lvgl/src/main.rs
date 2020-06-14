@@ -17,7 +17,6 @@ fn psp_main() {
 
     let mut ui = UI::init().unwrap();
 
-
     // Implement and register your display:
     let display_driver = DisplayDriver::new(&mut disp);
     ui.disp_drv_register(display_driver);
@@ -32,7 +31,6 @@ fn psp_main() {
 
     let mut time = Label::new(&mut screen).unwrap();
     let mut style_time = Style::default();
-    //style_time.set_text_font(font_noto_sans_numeric_28);
     style_time.set_text_color(State::DEFAULT, Color::from_rgb((255, 255, 255)));
     time.add_style(Part::Main, style_time).unwrap();
     time.set_align(&mut screen, Align::InLeftMid, 0, 0).unwrap();
