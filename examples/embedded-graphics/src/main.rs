@@ -10,19 +10,23 @@ use embedded_graphics::style::PrimitiveStyleBuilder;
 use embedded_graphics::style::TextStyleBuilder;
 use tinybmp::Bmp;
 
-use psp::embedded_graphics::Framebuffer;
+use psp::embedded_graphics::PspDisplay;
 
 psp::module!("sample_emb_gfx", 1, 1);
 
 fn psp_main() {
     psp::enable_home_button();
-    let mut disp = Framebuffer::new();
+    let mut disp = PspDisplay::new();
 
     let style = PrimitiveStyleBuilder::new()
-        .fill_color(Rgb888::BLACK)
+        .fill_color(Rgb888::BLUE)
         .build();
-    let black_backdrop = Rectangle::new(Point::new(0, 0), Point::new(160, 80)).into_styled(style);
-    black_backdrop.draw(&mut disp).unwrap();
+    let black_backdrop = Rectangle::new(Point::new(0, 0), Point::new(480, 272)).into_styled(style);
+    //let avg_dur = psp::benchmark(|| {
+       black_backdrop.draw(&mut disp).unwrap();
+    //disp.update();
+    //}, 10);
+    //psp::dprintln!("{:?}", avg_dur);
 
     // draw ferris
     let bmp = Bmp::from_slice(include_bytes!("../assets/ferris.bmp")).unwrap();
@@ -68,4 +72,10 @@ fn psp_main() {
         .into_styled(TextStyleBuilder::new(Font6x8).text_color(rust).build())
         .draw(&mut disp)
         .unwrap();
+    loop {
+        unsafe {
+            psp::sys::sceDisplayWaitVblankStart();
+        }
+        disp.update();
+    }
 }
