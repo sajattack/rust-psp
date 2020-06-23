@@ -67,7 +67,7 @@ pub use panic::catch_unwind;
 pub mod embedded_graphics;
 
 #[repr(align(16))]
-pub struct Align16<T>(pub T);
+pub struct Align16<T: ?Sized>(pub T);
 
 #[cfg(all(target_os = "psp", not(feature = "stub-only")))]
 global_asm!(
