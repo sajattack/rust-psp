@@ -12,10 +12,10 @@ struct Color {
 
 pub unsafe extern "C" fn sceVfpuColorAdd(arg1: *mut Color, arg2: *mut Color, arg3: *mut Color) -> *mut Color {
     vfpu_asm! {
-        lv.q C010, a1;
-        lv.q C020, a2;
-        vadd.q C000, C010, C020;
-        sv.q C000, a0;
+        lv_q C010, a1;
+        lv_q C020, a2;
+        vadd_q C000, C010, C020;
+        sv_q C000, a0;
         :: "{4}"(arg1), "{5}"(arg2), "{6}"(arg3) : "memory" : "volatile"
     }
 
