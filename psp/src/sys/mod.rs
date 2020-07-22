@@ -103,6 +103,8 @@ pub use net::*;
 
 mod font;
 pub use font::*;
+mod vfpu;
+pub use vfpu::*;
 
 // These are not found (likely because this was tested in user mode on a PSP-2000).
 // pub mod sircs;
