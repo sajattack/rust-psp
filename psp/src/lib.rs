@@ -8,6 +8,7 @@
     const_loop,
     const_if_match,
     const_generics,
+    restricted_std,
     c_variadic,
     lang_items,
 )]
