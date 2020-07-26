@@ -8,7 +8,6 @@
     const_loop,
     const_if_match,
     const_generics,
-    restricted_std,
     c_variadic,
     lang_items,
 )]
@@ -59,6 +58,13 @@ fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
 
 #[no_mangle]
 extern "C" fn __rust_foreign_exception() -> ! { loop {} }
+
+#[cfg(feature = "std")]
+pub use std::panic::catch_unwind;
+
+#[cfg(not(feature = "std"))]
+pub use panic::catch_unwind;
+
 
 #[cfg(feature = "std")]
 pub use std::panic::catch_unwind;
