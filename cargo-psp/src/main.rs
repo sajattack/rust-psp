@@ -202,6 +202,8 @@ fn main() {
         .arg("mipsel-sony-psp")
         .arg("-Z")
         .arg(build_std_flag)
+        .arg("--target")
+        .arg("mipsel-sony-psp")
         .args(args)
         .env("RUSTFLAGS", rustflags)
         .stdin(Stdio::inherit())
