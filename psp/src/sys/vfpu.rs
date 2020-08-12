@@ -110,14 +110,14 @@ pub unsafe extern "C" fn sceVfpuVector2Ceil(
     arg1: *mut ScePspFVector2,
     arg2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    vfpu_asm! {
-        lv_s S000, a1;
-        lv_s S001, 4(a1);
-        vf2id_p C000, C000, 0;
-        sv_s S000, a0;
-        sv_s S001, 4(a0);
-        : : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    }
+    //vfpu_asm! {
+        //lv_s S000, a1;
+        //lv_s S001, 4(a1);
+        //vf2id_p C000, C000, 0;
+        //sv_s S000, a0;
+        //sv_s S001, 4(a0);
+        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
+    //}
     arg1
 }
 
@@ -126,14 +126,14 @@ pub unsafe extern "C" fn sceVfpuVector2Trunc(
     arg1: *mut ScePspFVector2,
     arg2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    vfpu_asm! {
-        lv_s S000, a1;
-        lv_s S001, 4(a1);
-        vf2iz_p C000, C000, 0;
-        sv_s S000, a0;
-        sv_s S001, 4(a0);
-        : : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    }
+    //vfpu_asm! {
+        //lv_s S000, a1;
+        //lv_s S001, 4(a1);
+        //vf2iz_p C000, C000, 0;
+        //sv_s S000, a0;
+        //sv_s S001, 4(a0);
+        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
+    //}
     arg1
 }
 
@@ -142,14 +142,14 @@ pub unsafe extern "C" fn sceVfpuVector2Round(
     arg1: *mut ScePspFVector2,
     arg2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    vfpu_asm! {
-        lv_s S000, a1;
-        lv_s S001, 4(a1);
-        vf2in_p C000, C000, 0;
-        sv_s S000, a0;
-        sv_s S001, 4(a0);
-        : : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    }
+    //vfpu_asm! {
+        //lv_s S000, a1;
+        //lv_s S001, 4(a1);
+        //vf2in_p C000, C000, 0;
+        //sv_s S000, a0;
+        //sv_s S001, 4(a0);
+        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
+    //}
     arg1
 }
 
@@ -158,14 +158,14 @@ pub unsafe extern "C" fn sceVfpuVector2Floor(
     arg1: *mut ScePspFVector2,
     arg2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    vfpu_asm! {
-        lv_s S000, a1;
-        lv_s S001, 4(a1);
-        vf2iu_p C000, C000, 0;
-        sv_s S000, a0;
-        sv_s S001, 4(a0);
-        : : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    }
+    //vfpu_asm! {
+        //lv_s S000, a1;
+        //lv_s S001, 4(a1);
+        //vf2iu_p C000, C000, 0;
+        //sv_s S000, a0;
+        //sv_s S001, 4(a0);
+        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
+    //}
     arg1
 }
 
@@ -275,37 +275,37 @@ pub unsafe extern "C" fn sceVfpuVector2Hermite(
     arg5: *mut ScePspFVector2,
     arg6: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    vfpu_asm! {
-        .mips "addiu sp, sp, -0x10";
-        .mips "swc1 f12, 0x0(sp)";
-        lv_s S000,a1;
-        lv_s S001, 4(a1);
-	lv_s S010,a2;
-	lv_s S011,4(a2);
-	lv_s S020,t0;
-	lv_s S021,4(t0);
-	lv_s S030,a3;
-	lv_s S031,4(a3);
-	lv_s S202,sp;
-	vone_s S203;
-	vmul_s S201,S202,S202;
-	vpfxs [2],[1],[1],[-2];
-	vmov_q C100,C100;
-	vpfxs [-3],[-2],[-1],[3];
-	vmov_q C110,C110;
-	vmul_s S200,S201,S202;
-	vpfxs [0],[1],[0],[0];
-	vmov_q C120,C120;
-	vpfxs [1],[0],[0],[0];
-	vmov_q C130,C130;
-	vtfm4_q C210,E100,C200;
-	vtfm4_q C220,E000,C210;
-	sv_s S220,a0;
-	sv_s S221,4(a0);
-        .mips "addiu sp, sp, 0x10";
+    //vfpu_asm! {
+        //.mips "addiu sp, sp, -0x10";
+        //.mips "swc1 f12, 0x0(sp)";
+        //lv_s S000,a1;
+        //lv_s S001, 4(a1);
+	//lv_s S010,a2;
+	//lv_s S011,4(a2);
+	//lv_s S020,t0;
+	//lv_s S021,4(t0);
+	//lv_s S030,a3;
+	//lv_s S031,4(a3);
+	//lv_s S202,sp;
+	//vone_s S203;
+	//vmul_s S201,S202,S202;
+	//vpfxs [2],[1],[1],[-2];
+	//vmov_q C100,C100;
+	//vpfxs [-3],[-2],[-1],[3];
+	//vmov_q C110,C110;
+	//vmul_s S200,S201,S202;
+	//vpfxs [0],[1],[0],[0];
+	//vmov_q C120,C120;
+	//vpfxs [1],[0],[0],[0];
+	//vmov_q C130,C130;
+	//vtfm4_q C210,E100,C200;
+	//vtfm4_q C220,E000,C210;
+	//sv_s S220,a0;
+	//sv_s S221,4(a0);
+        //.mips "addiu sp, sp, 0x10";
 
-        : : "{4}"(arg2), "{5}"(arg3), "{6}"(arg4), "{7}"(arg5), "{8}"(arg6), "{f12}"(arg1) : "memory" : "volatile"
-    }
+        //: : "{4}"(arg2), "{5}"(arg3), "{6}"(arg4), "{7}"(arg5), "{8}"(arg6), "{f12}"(arg1) : "memory" : "volatile"
+    //}
     arg2
 }
 
@@ -315,23 +315,23 @@ pub unsafe extern "C" fn sceVfpuVector2Clamp(
     arg2: f32,
     arg3: *mut ScePspFVector2,
     arg4: *mut ScePspFVector2
-) -> ScePspFVector2 {
-    vfpu_asm! {
-	mfc1 t0,f12
-	mfc1 t1,f13
-	mtv t0,S010
-	mtv t1,S011
-	lv_s S000,0(a1)
-	lv_s S001,4(a1)
-	vpfxt [X,X,Z,W]
-	vmax_p C000,C000,C010
-	vpfxt [Y,Y,Z,W]
-	vmin_p C000,C000,C010
-	sv_s S000,0(a0)
-	sv_s S001,4(a0)
+) -> *mut ScePspFVector2 {
+    //vfpu_asm! {
+	//.mips "mfc1 t0,f12";
+	//.mips "mfc1 t1,f13";
+	//.mips "mtv t0,S010";
+	//.mips "mtv t1,S011";
+	//lv_s S000,a1;
+	////lv_s S001,4(a1);
+	//vpfxt [X,X,Z,W];
+	//vmax_p C000,C000,C010;
+	//vpfxt [Y,Y,Z,W];
+	//vmin_p C000,C000,C010;
+	//sv_s S000,a0;
+	////sv_s S001,4(a0);
 
-	: : "{4}"(arg3), "{5}"(arg4), "{f12}"(arg1), "{f13}"(arg2) : "memory" : "volatile"
-    }
+	//: : "{4}"(arg3), "{5}"(arg4), "{f12}"(arg1), "{f13}"(arg2) : "memory" : "volatile"
+    //}
     arg3
 }
 
@@ -341,8 +341,8 @@ pub unsafe extern "C" fn sceVfpuVector2Max(
     a: *mut ScePspFVector2,
     b: *mut ScePspFVector2
 ) {
-    let fVar1: f32;
-    let fVar2: f32;
+    let mut fVar1: f32;
+    let mut fVar2: f32;
     let fVar3: f32;
     fVar1 = (*b).x;
     if fVar1 < (*a).x {
@@ -363,8 +363,8 @@ pub unsafe extern "C" fn sceVfpuVector2Min(
     a: *mut ScePspFVector2,
     b: *mut ScePspFVector2
 ) {
-    let fVar1: f32;
-    let fVar2: f32;
+    let mut fVar1: f32;
+    let mut fVar2: f32;
     let fVar3: f32;
     fVar1 = (*b).x;
     if (*a).x < fVar1 {
@@ -402,34 +402,24 @@ pub unsafe extern "C" fn sceVfpuVector2Average(
 }
 
 //TODO: fix
-#[no_mangle]
-pub unsafe extern "C" fn sceVfpuVector2IsEqual(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
-) -> i32 {
-    vfpu_asm! {
-        lv_s S000, a0;
-        lv_s S001, 4(a0);
-        lv_s S010, a1;
-        lv_s S011, 4(a1);
-        .mips "li v0, 0";
-        vcmp_p EQ, C000, C010
-        // bvtl ret (CC[5])
-        .mips "li v0, 1";
-    }
-    return // ret
-}
+//#[no_mangle]
+//pub unsafe extern "C" fn sceVfpuVector2IsEqual(
+    //arg1: *mut ScePspFVector2,
+    //arg2: *mut ScePspFVector2,
+//) -> i32 {
+    //vfpu_asm! {
+        //lv_s S000, a0;
+        //lv_s S001, 4(a0);
+        //lv_s S010, a1;
+        //lv_s S011, 4(a1);
+        //.mips "li v0, 0";
+        //vcmp_p EQ, C000, C010
+        //// bvtl ret (CC[5])
+        //.mips "li v0, 1";
+    //}
+    //return 0// ret
+//}
 
-pub unsafe extern sceVfpuVector2IsZero(
-    arg1: *mut ScePspFVector2
-) -> i32 {
-    if (*arg1).x as u32 | (*arg2).y as u32) & 0x7fff_ffff == 0 {
-        1
-    } else {
-        0
-    }
-}
-    
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuColorAdd(arg1: *mut Color, arg2: *mut Color, arg3: *mut Color) -> *mut Color {
@@ -482,4 +472,59 @@ pub unsafe extern "C" fn sceVfpuColorSetRGB(
     color
 }
     
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuMemcpy(
+    mut dst: *mut u8,
+    mut src: *const u8,
+    mut size: usize,
+) -> *mut u8 {
+    if size == 0 {
+        return dst
+    }
 
+    while size > 63 {
+        vfpu_asm! {
+            lv_q C000, a1;
+            lv_q C010, 16(a1);
+            lv_q C020, 32(a1);
+            lv_q C030, 48(a1);
+            sv_q C000, 0(a0);
+            sv_q C010, 16(a0);
+            sv_q C020, 32(a0);
+            sv_q C030, 48(a0);
+            .mips "addiu a2, a2, -64";
+            .mips "addiu a1, a1, 64";
+            .mips "addiu a0, a0, 64";
+            : : "{4}"(dst), "{5}"(src), "{6}"(size) : "memory" : "volatile"
+        };
+    }
+
+    while size > 15 {
+        vfpu_asm! {
+            lv_q C000, a1;
+            sv_q C000, a0;
+            .mips "addiu a2, a2, -16";
+            .mips "addiu a1, a1, 16";
+            .mips "addiu a0, a0, 16";
+            : : "{4}"(dst), "{5}"(src), "{6}"(size) : "memory" : "volatile"
+        }
+    }
+
+    let mut dst32 = dst as *mut u32;
+    let mut src32 = src as *const u32;
+
+    while size > 3 {
+        *dst32 = *src32;
+        dst32 = dst32.add(1);
+        src32 = src32.add(1);
+        size -= 1;
+    }
+
+    while size > 0 {
+        *dst = *src;
+        dst.add(1);
+        src.add(1);
+        size -= 1;
+    }
+    dst
+}
