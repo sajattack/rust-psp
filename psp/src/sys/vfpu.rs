@@ -12,9 +12,6 @@ pub unsafe extern "C" fn sceVfpuMemcpy(
     let mut dst8 = dst;
     let mut src8 = src;
 
-    let mut dst32 = dst8 as *mut u32;
-    let mut src32 = src8 as *const u32;
-
     if ((src8 as u32)&0xF) == 0 //Both src and dst are 16byte aligned
     {
         while size > 63 {

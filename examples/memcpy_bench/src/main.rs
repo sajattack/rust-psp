@@ -15,51 +15,49 @@ fn psp_main() {
         sys::sceKernelChangeCurrentThreadAttr(0, ThreadAttributes::VFPU);
     }
 
-    let mut size = 16;
-    let mut cpu_dur = Duration::default();
-    let mut cpu32_dur = Duration::default();
-    let mut dmac_dur = Duration::default(); 
-    let mut vfpu_dur = Duration::default();
-    //loop {
-        let src = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
-        let dst = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
-        cpu_dur = psp::benchmark(|| {
-            for _ in 0..1000 {
-                unsafe { memcpy(dst, src as *const u8, size); }
-            }
-        }, 10);
+    let size = 16;
+    let iterations = 1000;
+    let cpu_dur: Duration;
+    let cpu32_dur: Duration;
+    let dmac_dur: Duration;
+    let vfpu_dur: Duration;
 
-        cpu32_dur = psp::benchmark(|| {
-            for _ in 0..1000 {
-                unsafe { memcpy32(dst, src as *const u8, size); }
-            }
-        }, 10);
+    let src = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
+    let dst = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
+    cpu_dur = psp::benchmark(|| {
+        for _ in 0..iterations {
+            unsafe { memcpy(dst, src as *const u8, size); }
+        }
+    }, 10);
+
+    cpu32_dur = psp::benchmark(|| {
+        for _ in 0..iterations {
+            unsafe { memcpy32(dst, src as *const u8, size); }
+        }
+    }, 10);
 
 
-        dmac_dur = psp::benchmark(|| {
-            for _ in 0..1000 {
-                unsafe { psp::sys::sceDmacMemcpy(dst, src as *const u8, size); }
-            }
-        }, 10);
+    dmac_dur = psp::benchmark(|| {
+        for _ in 0..iterations {
+            unsafe { psp::sys::sceDmacMemcpy(dst, src as *const u8, size); }
+        }
+    }, 10);
 
-        vfpu_dur = psp::benchmark(|| {
-            for _ in 0..1000 {
-                unsafe { psp::sys::sceVfpuMemcpy(dst, src as *const u8, size); }
-            }
-        }, 10);
+    vfpu_dur = psp::benchmark(|| {
+        for _ in 0..iterations {
+            unsafe { psp::sys::sceVfpuMemcpy(dst, src as *const u8, size); }
+        }
+    }, 10);
 
-        unsafe { alloc::alloc::dealloc(src, Layout::from_size_align_unchecked(size, 16)); }
-        unsafe { alloc::alloc::dealloc(dst, Layout::from_size_align_unchecked(size, 16)); }
-        //if dmac_dur < cpu32_dur {
-            //break;
-        //}
-        //size += 16
-    //}
-    psp::dprintln!("size: {}", size);
-    psp::dprintln!("cpu: {}", cpu_dur.as_nanos());
-    psp::dprintln!("cpu32: {}", cpu32_dur.as_nanos());
-    psp::dprintln!("dmac: {}", dmac_dur.as_nanos());
-    psp::dprintln!("vfpu: {}", vfpu_dur.as_nanos());
+    unsafe { alloc::alloc::dealloc(src, Layout::from_size_align_unchecked(size, 16)); }
+    unsafe { alloc::alloc::dealloc(dst, Layout::from_size_align_unchecked(size, 16)); }
+
+    psp::dprintln!("size: {} bytes", size);
+    psp::dprintln!("iterations: {}", iterations);
+    psp::dprintln!("cpu: {} microseconds", cpu_dur.as_micros());
+    psp::dprintln!("cpu32: {} microseconds", cpu32_dur.as_micros());
+    psp::dprintln!("dmac: {} microseconds", dmac_dur.as_micros());
+    psp::dprintln!("vfpu: {} microseconds", vfpu_dur.as_micros());
 }
 
 unsafe fn memcpy(dst: *mut u8, src: *const u8, num: usize) -> *mut u8 {
