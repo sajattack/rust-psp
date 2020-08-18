@@ -61,55 +61,20 @@ fn aeh(_: Layout) -> ! { loop {} }
 #[no_mangle]
 #[cfg(not(feature = "stub-only"))]
 unsafe extern fn memset(ptr: *mut u8, value: u32, num: usize) -> *mut u8 {
-    let mut size = num as usize;
-    let mut ptr32 = ptr as *mut u32;
-    let val32 = core::mem::transmute::<[u8;4], u32>([value as u8; 4]);
-    while size > 3 {
-        *ptr32 = val32;
-        ptr32 = ptr32.add(1);
-        size = size.saturating_sub(4);
-    }
-    let mut ptr_new = ptr32 as *mut u8;
-    while size > 0 {
-        *ptr_new = value as u8;
-        ptr_new = ptr_new.add(1);
-        size = size.saturating_sub(1);
-    }
-    ptr
+    crate::sys::sceKernelMemset(ptr, value as u8, num)
 }
 
 #[no_mangle]
 #[cfg(not(feature = "stub-only"))]
 unsafe extern fn memcpy(dst: *mut u8, src: *const u8, num: usize) -> *mut u8 {
-    for i in 0..num {
-        *dst.add(i) = *src.add(i);
+    if num < 12_000 {
+        crate::sys::sceKernelMemcpy(dst, src, num)
+    } else {
+        crate::sys::sceDmacMemcpy(dst, src, num); 
+        dst
     }
-    dst
 }
 
-// broke format macro somehow
-//#[no_mangle]
-//#[cfg(not(feature = "stub-only"))]
-//unsafe extern fn memcpy(dst: *mut u8, src: *const u8, num: isize) -> *mut u8 {
-    //let mut size = num as usize;
-    //let mut dst32 = dst as *mut u32;
-    //let mut src32 = src as *const u32;
-    //while size > 3 {
-        //*dst32 = *src32;
-        //dst32 = dst32.add(1);
-        //src32 = src32.add(1);
-        //size = size.saturating_sub(4);
-    //}
-    //let mut dst_new = dst32 as *mut u8;
-    //let mut src_new = src32 as *const u8;
-    //while size > 0 {
-        //*dst_new = *src_new;
-        //dst_new = dst_new.add(1);
-        //src_new = src_new.add(1);
-        //size = size.saturating_sub(1);
-    //}
-    //dst
-//}
 
 #[no_mangle]
 #[cfg(not(feature = "stub-only"))]
@@ -165,6 +130,5 @@ unsafe extern fn memmove(dst: *mut u8, src: *mut u8, num: isize) -> *mut u8 {
             size = size.saturating_sub(1);
         }
     }
-
     dst
 }
