@@ -1,10 +1,14 @@
 #![no_std]
 #![no_main]
 
-psp::module!("sample_module", 1, 1);
 extern crate alloc;
 use alloc::alloc::Layout;
+use alloc::format;
 use core::time::Duration;
+use core::ffi::c_void;
+use psp::sys::SceUid;
+
+psp::module!("sample_module", 1, 1);
 
 fn psp_main() {
     psp::enable_home_button();
@@ -15,49 +19,80 @@ fn psp_main() {
         sys::sceKernelChangeCurrentThreadAttr(0, ThreadAttributes::VFPU);
     }
 
-    let size = 16;
-    let iterations = 1000;
-    let cpu_dur: Duration;
-    let cpu32_dur: Duration;
-    let dmac_dur: Duration;
-    let vfpu_dur: Duration;
+    let iters: [usize; 11] = [16, 8, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    let sizes: [usize; 11] = [32,64,512,1024,2048,16348,32768,65536,131072,524288,1048576];
 
-    let src = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
-    let dst = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
-    cpu_dur = psp::benchmark(|| {
-        for _ in 0..iterations {
-            unsafe { memcpy(dst, src as *const u8, size); }
-        }
-    }, 10);
+    let mut cpu_dur: Duration;
+    let mut cpu32_dur: Duration;
+    let mut kernel_dur: Duration;
+    let mut dmac_dur: Duration;
+    let mut vfpu_dur: Duration;
 
-    cpu32_dur = psp::benchmark(|| {
-        for _ in 0..iterations {
-            unsafe { memcpy32(dst, src as *const u8, size); }
-        }
-    }, 10);
+    let fd = unsafe { psp::sys::sceIoOpen(b"host0:/results.txt\0".as_ptr(), psp::sys::IoOpenFlags::CREAT | psp::sys::IoOpenFlags::RD_WR, 0o777) };
 
+    for i in 0..11 {
+        let size = sizes[i];
+        let iterations = iters[i];
+        let src = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
+        let dst = unsafe { alloc::alloc::alloc(Layout::from_size_align_unchecked(size, 16)) };
+        cpu_dur = psp::benchmark(|| {
+            for _ in 0..iterations {
+                unsafe { memcpy(dst, src as *const u8, size); }
+            }
+        }, 10);
 
-    dmac_dur = psp::benchmark(|| {
-        for _ in 0..iterations {
-            unsafe { psp::sys::sceDmacMemcpy(dst, src as *const u8, size); }
-        }
-    }, 10);
+        cpu32_dur = psp::benchmark(|| {
+            for _ in 0..iterations {
+                unsafe { memcpy32(dst, src as *const u8, size); }
+            }
+        }, 10);
 
-    vfpu_dur = psp::benchmark(|| {
-        for _ in 0..iterations {
-            unsafe { psp::sys::sceVfpuMemcpy(dst, src as *const u8, size); }
-        }
-    }, 10);
+        kernel_dur = psp::benchmark(|| {
+            for _ in 0..iterations {
+                unsafe { psp::sys::sceKernelMemcpy(dst, src as *const u8, size); }
+            }
+        }, 10);
 
-    unsafe { alloc::alloc::dealloc(src, Layout::from_size_align_unchecked(size, 16)); }
-    unsafe { alloc::alloc::dealloc(dst, Layout::from_size_align_unchecked(size, 16)); }
+        dmac_dur = psp::benchmark(|| {
+            for _ in 0..iterations {
+                unsafe { psp::sys::sceDmacMemcpy(dst, src as *const u8, size); }
+            }
+        }, 10);
 
-    psp::dprintln!("size: {} bytes", size);
-    psp::dprintln!("iterations: {}", iterations);
-    psp::dprintln!("cpu: {} microseconds", cpu_dur.as_micros());
-    psp::dprintln!("cpu32: {} microseconds", cpu32_dur.as_micros());
-    psp::dprintln!("dmac: {} microseconds", dmac_dur.as_micros());
-    psp::dprintln!("vfpu: {} microseconds", vfpu_dur.as_micros());
+        vfpu_dur = psp::benchmark(|| {
+            for _ in 0..iterations {
+                unsafe { psp::sys::sceVfpuMemcpy(dst, src as *const u8, size); }
+            }
+        }, 10);
+
+        unsafe { alloc::alloc::dealloc(src, Layout::from_size_align_unchecked(size, 16)); }
+        unsafe { alloc::alloc::dealloc(dst, Layout::from_size_align_unchecked(size, 16)); }
+
+        let output = format!(
+        "size: {} bytes
+iterations: {} 
+cpu: {} microseconds
+cpu32: {} microseconds
+kernel: {} microseconds
+dmac: {} microseconds
+vfpu: {} microseconds\n\n",
+        size, iterations, cpu_dur.as_micros(), cpu32_dur.as_micros(),
+        kernel_dur.as_micros(), dmac_dur.as_micros(), 
+        vfpu_dur.as_micros()
+        );
+        write_to_fd(fd, output);
+    }
+    unsafe { psp::sys::sceIoClose(fd) };
+}
+
+fn write_to_fd(fd: SceUid, msg: alloc::string::String) {
+    unsafe {
+        psp::sys::sceIoWrite(
+            fd,
+            msg.as_str().as_bytes().as_ptr() as *const u8 as *const c_void,
+            msg.len()
+        ) 
+    };
 }
 
 unsafe fn memcpy(dst: *mut u8, src: *const u8, num: usize) -> *mut u8 {
