@@ -18,15 +18,15 @@ psp::module!("sample_emb_gfx", 1, 1);
 
 fn psp_main() {
     psp::enable_home_button();
-    let mut disp = PspDisplay::new();
 
+    let mut disp = PspDisplay::new();
 
     unsafe {
         disp.clear(Rgb888::BLUE).unwrap();
 
         //draw ferris
         let bmp = Bmp::from_slice(include_bytes!("../assets/ferris.bmp")).unwrap();
-        let image: Image<Bmp, _> = Image::new(&bmp, Point::zero());
+        let image: Image<Bmp, _> = Image::new(&bmp, Point::new(400, 200));
         image.draw(&mut disp).unwrap();
 
         Triangle::new(
@@ -69,7 +69,13 @@ fn psp_main() {
             .draw(&mut disp)
             .unwrap();
 
+        let dur = psp::benchmark(|| {
+            disp.flush();
+        }, 10);
+        let dur_cstr = alloc::format!("{}\0", dur.as_micros());
+        psp::sys::sceGuDebugPrint(400, 0, 0xffffffff, dur_cstr.as_ptr());
+        psp::sys::sceGuDebugFlush();
         psp::sys::sceDisplayWaitVblankStart();
-        disp.flush();
+        psp::sys::sceGuSwapBuffers();
     }
 }
