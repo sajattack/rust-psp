@@ -5,6 +5,7 @@ use crate::sys::{
 };
 use crate::{SCREEN_WIDTH, SCREEN_HEIGHT, BUF_WIDTH};
 use crate::vram_alloc;
+use core::ffi::c_void;
 use core::convert::{TryInto, TryFrom};
 use embedded_graphics::{
     drawable::Pixel,
@@ -13,6 +14,8 @@ use embedded_graphics::{
     DrawTarget,
     prelude::*,
 };
+
+static mut LIST: crate::Align16<[u32; 0x40000]> = crate::Align16([0; 0x40000]);
 
 pub struct Framebuffer {
     vram_base: *mut u8,
@@ -86,6 +89,25 @@ impl DrawTarget<Rgb888> for Framebuffer {
 
         Ok(())
     }
+
+    fn clear(&mut self, color: Rgb888) -> Result<(), Self::Error> {
+        unsafe {
+            sys::sceGuInit();
+            sys::sceGuStart(sys::GuContextType::Direct, &mut LIST.0 as *mut _ as *mut _);
+            sys::sceGuDrawBufferList(sys::DisplayPixelFormat::Psm8888, self.draw_buf.as_mut_ptr_from_zero() as *mut c_void, BUF_WIDTH as i32);
+            sys::sceGuDispBuffer(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32, self.vram_base as _, BUF_WIDTH as i32);
+            sys::sceGuScissor(0, 0, SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32);
+            sys::sceGuEnable(sys::GuState::ScissorTest);
+
+            sys::sceGuClearColor(rgb_to_bgr(RawU24::from(color).into_inner()));
+            sys::sceGuClear(sys::ClearBuffer::COLOR_BUFFER_BIT | sys::ClearBuffer::FAST_CLEAR_BIT);
+            sys::sceGuFinish();
+            sys::sceGuSync(sys::GuSyncMode::Finish, sys::GuSyncBehavior::Wait);
+            sys::sceGuTerm();
+        }
+        Ok(())
+    }
+
 
     fn size(&self) -> Size {
         Size::new(SCREEN_WIDTH, SCREEN_HEIGHT)

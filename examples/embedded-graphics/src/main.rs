@@ -17,25 +17,7 @@ psp::module!("sample_emb_gfx", 1, 1);
 fn psp_main() {
     psp::enable_home_button();
     let mut disp = Framebuffer::new();
-
-    let style = PrimitiveStyleBuilder::new()
-        .fill_color(Rgb888::BLACK)
-        .build();
-    let black_backdrop = Rectangle::new(Point::new(0, 0), Point::new(160, 80)).into_styled(style);
-    black_backdrop.draw(&mut disp).unwrap();
-    Triangle::new(
-        Point::new(8, 66 + 16),
-        Point::new(8 + 16, 66 + 16),
-        Point::new(8 + 8, 66),
-    )
-    .into_styled(
-        PrimitiveStyleBuilder::new()
-            .stroke_color(Rgb888::RED)
-            .stroke_width(1)
-            .build(),
-    )
-    .draw(&mut disp)
-    .unwrap();
+    disp.clear(Rgb888::BLUE).unwrap();
 
     // draw ferris
     let bmp = Bmp::from_slice(include_bytes!("../assets/ferris.bmp")).unwrap();
