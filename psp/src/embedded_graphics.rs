@@ -5,12 +5,13 @@ use crate::sys::{
 };
 use crate::{SCREEN_WIDTH, SCREEN_HEIGHT, BUF_WIDTH};
 use crate::vram_alloc;
-use core::convert::TryInto;
+use core::convert::{TryInto, TryFrom};
 use embedded_graphics::{
     drawable::Pixel,
-    geometry::Size,
-    pixelcolor::{Rgb888, RgbColor},
+    geometry::{Size, Point},
+    pixelcolor::{Rgb888, raw::RawU24},
     DrawTarget,
+    prelude::*,
 };
 
 pub struct Framebuffer {
@@ -40,6 +41,17 @@ impl Framebuffer {
             sys::sceDmacMemcpy(self.vram_base, self.draw_buf.as_mut_ptr_direct_to_vram(), 480*272*4); 
         }
     }
+
+    #[inline]
+    fn point_to_index(&self, point: Point) -> Option<usize> {
+        if let Ok((x, y)) = <(u32, u32)>::try_from(point) {
+            if x < BUF_WIDTH && y < self.size().height {
+                return Some((x + y * BUF_WIDTH) as usize);
+            }
+        }
+        None
+    }
+
 }
 
 impl DrawTarget<Rgb888> for Framebuffer {
@@ -54,15 +66,33 @@ impl DrawTarget<Rgb888> for Framebuffer {
                     .offset(x as isize)
                     .offset((y * BUF_WIDTH) as isize);
 
-                *ptr = (color.r() as u32)
-                    | ((color.g() as u32) << 8)
-                    | ((color.b() as u32) << 16);
+                *ptr = rgb_to_bgr(RawU24::from(color).into_inner());
             }
         }
+        Ok(())
+    }
+
+    fn draw_iter<I>(&mut self, pixels: I) -> Result<(), Self::Error>
+    where
+        I: IntoIterator<Item = Pixel<Rgb888>>,
+    {
+        for Pixel(point, color) in pixels.into_iter() {
+            if let Some(index) = self.point_to_index(point) {
+                unsafe {
+                    *(self.draw_buf.as_mut_ptr_direct_to_vram() as *mut u32).add(index) = rgb_to_bgr(RawU24::from(color).into_inner());
+                }
+            }
+        }
+
         Ok(())
     }
 
     fn size(&self) -> Size {
         Size::new(SCREEN_WIDTH, SCREEN_HEIGHT)
     }
+}
+
+#[inline]
+fn rgb_to_bgr(rgb: u32) -> u32 {
+    core::intrinsics::bswap(rgb << 8 | rgb >> 24)
 }
