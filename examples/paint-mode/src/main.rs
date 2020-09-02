@@ -90,6 +90,7 @@ fn psp_main() {
 
         cur_location = draw_obj.center();
         cur_size = draw_obj.size();
+        disp.flush();
     }
 }
 
