@@ -10,6 +10,8 @@ use embedded_graphics::style::PrimitiveStyleBuilder;
 use embedded_graphics::style::TextStyleBuilder;
 use tinybmp::Bmp;
 
+extern crate alloc;
+
 use psp::embedded_graphics::Framebuffer;
 
 psp::module!("sample_emb_gfx", 1, 1);
@@ -17,7 +19,13 @@ psp::module!("sample_emb_gfx", 1, 1);
 fn psp_main() {
     psp::enable_home_button();
     let mut disp = Framebuffer::new();
-    disp.clear(Rgb888::BLUE).unwrap();
+    let dur = psp::benchmark(|| {
+        disp.clear(Rgb888::BLUE).unwrap();
+    }, 10);
+    let dur_str = alloc::format!("{}", dur.as_micros());
+    unsafe {
+        psp::sys::sceIoWrite(psp::sys::SceUid(2), dur_str.as_ptr() as _, dur_str.len());
+    }
 
     // draw ferris
     let bmp = Bmp::from_slice(include_bytes!("../assets/ferris.bmp")).unwrap();
