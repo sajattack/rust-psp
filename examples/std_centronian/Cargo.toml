@@ -5,7 +5,7 @@ authors = ["Paul Sajna <sajattack@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-psp = { path = "../../psp" }
+psp = { path = "../../psp", features=["std"] }
 
 [profile.release]
 debug = true

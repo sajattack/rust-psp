@@ -56,22 +56,9 @@ pub mod sys;
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
 
+#[cfg(not(feature = "std"))]
 #[no_mangle]
 extern "C" fn __rust_foreign_exception() -> ! { loop {} }
-
-#[cfg(feature = "std")]
-pub use std::panic::catch_unwind;
-
-#[cfg(not(feature = "std"))]
-pub use panic::catch_unwind;
-
-
-#[cfg(feature = "std")]
-pub use std::panic::catch_unwind;
-
-#[cfg(not(feature = "std"))]
-pub use panic::catch_unwind;
-
 
 #[cfg(feature = "std")]
 pub use std::panic::catch_unwind;

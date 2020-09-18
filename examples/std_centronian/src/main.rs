@@ -9,7 +9,6 @@ psp::module!("std_centronian", 1, 1);
 fn psp_main() {
     psp::enable_home_button();
     unsafe {
-        panic!();
         load_modules();
         init();
         psp::sys::sceNetApctlConnect(1);

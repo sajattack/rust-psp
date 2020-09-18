@@ -8,8 +8,6 @@ use crate::sys;
 
 #[cfg(feature = "std")]
 use core::{mem::ManuallyDrop, any::Any};
-#[cfg(feature = "std")]
-use core::panic::BoxMeUp;
 #[cfg(not(feature = "std"))]
 use core::{mem::{self, ManuallyDrop}, any::Any, panic::{PanicInfo, BoxMeUp, Location}};
 
