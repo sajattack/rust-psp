@@ -114,13 +114,10 @@ impl Tetromino {
 
     pub fn as_vertices(&self) -> [sprite::Vertex; 8] {
         let mut output = [sprite::Vertex::default(); 8];
-        let mut output_pos = 0;
-        self.as_sprites().iter().for_each(|s| {
-            s.as_vertices().iter().for_each(|v| {
-                output[output_pos] = *v;
-                output_pos += 1
-            })
-        });
+        { self.as_sprites().iter() }
+            .flat_map(|s| s.as_vertices())
+            .zip(output.iter_mut())
+            .for_each(|(v, dst)| *dst = v);
         output
     }
 

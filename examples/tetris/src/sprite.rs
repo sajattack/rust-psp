@@ -48,25 +48,24 @@ where
         }
     }
 
-    pub fn as_vertices(&self) -> [Vertex; 2] {
-        [
-            Vertex {
-                u: 0.0,
-                v: 0.0,
-                color: self.color,
-                x: self.x as f32,
-                y: self.y as f32,
-                z: 0.0,
-            },
-            Vertex {
-                u: self.width as f32,
-                v: self.height as f32,
-                color: self.color,
-                x: self.x as f32 + self.width as f32,
-                y: self.y as f32 + self.height as f32,
-                z: 0.0,
-            },
-        ]
+    pub fn as_vertices(&self) -> impl Iterator<Item = Vertex> {
+        Some(Vertex {
+            u: 0.0,
+            v: 0.0,
+            color: self.color,
+            x: self.x as f32,
+            y: self.y as f32,
+            z: 0.0,
+        })
+        .into_iter()
+        .chain(Some(Vertex {
+            u: self.width as f32,
+            v: self.height as f32,
+            color: self.color,
+            x: self.x as f32 + self.width as f32,
+            y: self.y as f32 + self.height as f32,
+            z: 0.0,
+        }))
     }
 
     /// Don't use this if you're drawing many sprites, it's really slow
