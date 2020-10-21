@@ -453,39 +453,39 @@ pub unsafe extern "C" fn sceVfpuVector2Normalize(
 pub unsafe extern "C" fn sceVfpuVector2Length(
     arg: *mut ScePspFVector2,
 ) /*-> f32*/ {
-    vfpu_asm! {
-        .mips "addiu sp,sp,-0x10";
-        lv_s S000, 0(a1);
-        lv_s S001, 4(a1);
-        vdot_p S000,C000,C000;
-        vsqrt_s S000,S000;
-        sv_s S000, 0(sp);
-        lwc1 f0, 0(sp);
-        .mips "jr ra";
-        .mips "addiu sp, sp, 0x10";
-        : : "{4}"(arg) : "memory" : "volatile"
-    };
+    //vfpu_asm! {
+        //.mips "addiu $$sp, $$sp, -0x10";
+        //lv_s S000, 0(a1);
+        //lv_s S001, 4(a1);
+        //vdot_p S000,C000,C000;
+        //vsqrt_s S000,S000;
+        //sv_s S000, 0(sp);
+        //lwc1 f0, 0(sp);
+        //.mips "jr ra";
+        //.mips "addiu $$sp, $$sp, 0x10";
+        //: : "{4}"(arg) : "memory" : "volatile"
+    //};
 }
 
 pub unsafe extern "C" fn sceVfpuVector2Distance (
     arg1: *mut ScePspFVector2,
     arg2: *mut ScePspFVector2,
 ) /*-> f32*/ {
-    vfpu_asm! {
-        .mips "addiu sp,sp,-0x10";
-        lv_s S000, 0(a0);
-        lv_s S001, 4(a0);
-        lv_s S010, 0(a1);
-        lv_s S011, 4(a1);
-        vsub_p C000, C000, C010;
-        vdot_p S000, C000, C000;
-        vsqrt_s S000, S000;
-        sv_s S000, 0(sp);
-        lwc1 f0, 0(sp);
-        .mips "jr ra";
-        .mips "addiu sp, sp, 0x10";
-	: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    }
+    //vfpu_asm! {
+        //.mips "addiu sp,sp,-0x10";
+        //lv_s S000, 0(a0);
+        //lv_s S001, 4(a0);
+        //lv_s S010, 0(a1);
+        //lv_s S011, 4(a1);
+        //vsub_p C000, C000, C010;
+        //vdot_p S000, C000, C000;
+        //vsqrt_s S000, S000;
+        //sv_s S000, 0(sp);
+        //lwc1 f0, 0(sp);
+        //.mips "jr ra";
+        //.mips "addiu sp, sp, 0x10";
+	//: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
+    //}
 }
 
 
@@ -493,10 +493,10 @@ pub unsafe extern "C" fn sceVfpuVector2Distance (
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuColorAdd(arg1: *mut Color, arg2: *mut Color, arg3: *mut Color) -> *mut Color {
     vfpu_asm! {
-        lv_q C010, a1;
-        lv_q C020, a2;
+        lv_q C010, 0(a1);
+        lv_q C020, 0(a2);
         vadd_q C000, C010, C020;
-        sv_q C000, a0;
+        sv_q C000, 0(a0);
         : : "{4}"(arg1), "{5}"(arg2), "{6}"(arg3) : "memory" : "volatile"
     }
     arg1
