@@ -120,6 +120,21 @@ macro_rules! instruction {
         )
     };
 
+    // No offset
+    (lv_s $t:ident, $s:ident) => { $crate::instruction!(lv_s $t, 0($s)) };
+
+    // lv.s 110010ss sssttttt oooooooo oooooott
+    (lv_s $t:ident, $offset:literal ( $s:ident )) => {
+        concat!(
+            "\n.byte (((", stringify!($offset), " / 4) << 2) & 0xff) | ((",
+                $crate::register_single!($t), " >> 5) & 0b11)",
+            "\n.byte (", stringify!($offset), " / 4) >> 6",
+            "\n.byte ((", $crate::register_mips!($s), " << 5) & 0xff) | (",
+                $crate::register_single!($t), "& 0b11111)",
+            "\n.byte 0b11001000 | (", $crate::register_mips!($s), " >> 3)",
+        )
+    }; 
+
     // No offset, no writeback
     (sv_q $t:ident, $s:ident) => {
         $crate::instruction!(sv_q $t, 0($s), wb:0)
@@ -150,6 +165,28 @@ macro_rules! instruction {
             "\n.byte ((", $crate::register_mips!($s), " << 5) & 0xff) | (",
                 $crate::register_quad!($t), " & 0b11111)",
             "\n.byte 0b11111000 | (", $crate::register_mips!($s), " >> 3)",
+        )
+    };
+
+    // No offset, no writeback
+    (sv_s $t:ident, $s:ident) => {
+        $crate::instruction!(sv_s $t, 0($s), wb:0)
+    };
+
+    // Has offset, no writeback
+    (sv_s $t:ident, $offset:literal ( $s:ident )) => {
+        $crate::instruction!(sv_s $t, $offset ($s), wb:0)
+    };
+
+    // sv.s 111010ss sssttttt oooooooo oooooott
+    (sv_s $t:ident, $offset:literal ( $s:ident ), wb:$wb:literal) => {
+        concat!(
+            "\n.byte (((", stringify!($offset), " / 4) << 2) & 0xff) | ((",
+                $crate::register_single!($t), " >> 5) & 0b11)",
+            "\n.byte (", stringify!($offset), " / 4) >> 6",
+            "\n.byte ((", $crate::register_mips!($s), " << 5) & 0xff) | (",
+                $crate::register_single!($t), " & 0b11111)",
+            "\n.byte 0b11101000 | (", $crate::register_mips!($s), " >> 3)",
         )
     };
 

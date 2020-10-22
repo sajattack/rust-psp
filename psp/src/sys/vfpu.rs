@@ -1,5 +1,7 @@
-use core::ffi::c_void;
-use super::types::{ScePspFVector2, ScePspIVector2, ScePspVector2};
+use super::types::{
+    ScePspFVector2, ScePspIVector2, ScePspFVector3, ScePspIVector3, ScePspFVector4, 
+    ScePspIVector4,
+};
 
 type undefined4 = f32;
 
@@ -78,8 +80,8 @@ pub unsafe extern "C" fn sceVfpuVector2Set(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Copy(
-    dst: *mut ScePspFVector2,
     src: *mut ScePspFVector2,
+    dst: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
     let temp = (*src).x;
     (*dst).y = (*src).y;
@@ -89,90 +91,90 @@ pub unsafe extern "C" fn sceVfpuVector2Copy(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2PositiveZero(
-    vector: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    (*vector).x = 0.0;
-    (*vector).y = 0.0;
-    vector 
+    (*vector2).x = 0.0;
+    (*vector2).y = 0.0;
+    vector2 
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2NegativeZero(
-    vector: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    (*vector).y = 0x8000_0000u32 as f32;
-    (*vector).x = 0x8000_0000u32 as f32;
-    vector 
+    (*vector2).y  = f32::from_bits(0x8000_0000);
+    (*vector2).x  = f32::from_bits(0x8000_0000); 
+    vector2
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Ceil(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    //vfpu_asm! {
-        //lv_s S000, 0(a1);
-        //lv_s S001, 4(a1);
-        //vf2id_p C000, C000, 0;
-        //sv_s S000, 0(a0);
-        //sv_s S001, 4(a0);
-        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    //}
-    arg1
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        vf2id_p C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        : : "{4}"(result), "{5}"(vector2) : "memory" : "volatile"
+    }
+    result
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Trunc(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    //vfpu_asm! {
-        //lv_s S000, 0(a1);
-        //lv_s S001, 4(a1);
-        //vf2iz_p C000, C000, 0;
-        //sv_s S000, 0(a0);
-        //sv_s S001, 4(a0);
-        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    //}
-    arg1
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        vf2iz_p C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        : : "{4}"(result), "{5}"(vector2) : "memory" : "volatile"
+    }
+    result
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Round(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    //vfpu_asm! {
-        //lv_s S000, 0(a1);
-        //lv_s S001, 4(a1);
-        //vf2in_p C000, C000, 0;
-        //sv_s S000, 0(a0);
-        //sv_s S001, 4(a0);
-        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    //}
-    arg1
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        vf2in_p C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        : : "{4}"(result), "{5}"(vector2) : "memory" : "volatile"
+    }
+    result
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Floor(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    //vfpu_asm! {
-        //lv_s S000, 0(a1);
-        //lv_s S001, 4(a1);
-        //vf2iu_p C000, C000, 0;
-        //sv_s S000, 0(a0);
-        //sv_s S001, 4(a0);
-        //: : "{4}"(arg1), "{5}"(arg2) : "memory" : "volatile"
-    //}
-    arg1
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        vf2iu_p C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        : : "{4}"(result), "{5}"(vector2) : "memory" : "volatile"
+    }
+    vector2
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2FromIVector(
-    dst: *mut ScePspFVector2,
     src: *mut ScePspIVector2,
+    dst: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
     (*dst).y = (*src).y as f32;
     (*dst).x = (*src).x as f32;
@@ -181,24 +183,24 @@ pub unsafe extern "C" fn sceVfpuVector2FromIVector(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Add(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
-    arg3: *mut ScePspFVector2,
+    left_addend: *mut ScePspFVector2,
+    right_addend: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    (*arg1).y = (*arg2).y + (*arg3).y;
-    (*arg1).x = (*arg2).x + (*arg3).x;
-    arg1
+    (*result).y = (*left_addend).y + (*right_addend).y;
+    (*result).x = (*left_addend).x + (*right_addend).x;
+    result 
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Sub(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
-    arg3: *mut ScePspFVector2,
+    minuend: *mut ScePspFVector2,
+    subtrahend: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    (*arg1).y = (*arg2).y - (*arg3).y;
-    (*arg1).x = (*arg2).x - (*arg3).x;
-    arg1
+    (*result).y = (*minuend).y - (*subtrahend).y;
+    (*result).x = (*minuend).x - (*subtrahend).x;
+    result
 }
 
 #[no_mangle]
@@ -225,12 +227,12 @@ pub unsafe extern "C" fn sceVfpuVector2Div(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Neg(
-    arg1: *mut ScePspFVector2,
-    arg2: *mut ScePspFVector2,
+    vector2: *mut ScePspFVector2,
+    result: *mut ScePspFVector2,
 ) -> *mut ScePspFVector2 {
-    (*arg1).y = 0.0 - (*arg2).y;
-    (*arg1).x = 0.0 - (*arg2).x;
-    arg1
+    (*result).y = 0.0 - (*vector2).y;
+    (*result).x = 0.0 - (*vector2).x;
+    result
 }
 
 #[no_mangle]
@@ -337,9 +339,9 @@ pub unsafe extern "C" fn sceVfpuVector2Clamp(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Max(
-    max: *mut ScePspFVector2,
     a: *mut ScePspFVector2,
-    b: *mut ScePspFVector2
+    b: *mut ScePspFVector2,
+    max: *mut ScePspFVector2,
 ) {
     let mut fVar1: f32;
     let mut fVar2: f32;
@@ -359,9 +361,9 @@ pub unsafe extern "C" fn sceVfpuVector2Max(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Min(
-    min: *mut ScePspFVector2,
     a: *mut ScePspFVector2,
-    b: *mut ScePspFVector2
+    b: *mut ScePspFVector2,
+    min: *mut ScePspFVector2,
 ) {
     let mut fVar1: f32;
     let mut fVar2: f32;
@@ -396,9 +398,9 @@ pub unsafe extern "C" fn sceVfpuVector2Funnel(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2Average(
-    arg1: *mut ScePspFVector2
+    vector2: *mut ScePspFVector2
 ) -> f32 {
-    ((*arg1).x + (*arg1).y) * 0.5
+    ((*vector2).x + (*vector2).y) * 0.5
 }
 
 //TODO: fix
@@ -422,9 +424,9 @@ pub unsafe extern "C" fn sceVfpuVector2Average(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuVector2IsZero(
-    arg1: *mut ScePspFVector2
+    vector2: *mut ScePspFVector2
 ) -> bool {
-    (*arg1).x as u32 | (*arg1).y as u32 & 0x7fff_ffff == 0
+    (*vector2).x.to_bits() | (*vector2).y.to_bits() & 0x7fff_ffff == 0
 }
 
 #[no_mangle]
@@ -488,18 +490,382 @@ pub unsafe extern "C" fn sceVfpuVector2Distance (
     //}
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector2FaceForward(
+    arg1: *mut ScePspFVector2,
+    arg2: *mut ScePspFVector2,
+    arg3: *mut ScePspFVector2,
+    arg4: *mut ScePspFVector2,
+) -> *mut ScePspFVector2 {
+    //vfpu_asm! {
+        //lv_s S010, 0(a2); 
+        //lv_s S011, 4(a2); 
+        //lv_s S020, 0(a3);
+        //lv_s S021, 4(a3);
+        //vdot_p S030, C010, C020;
+        //lv_s S000, 0(a1);
+        //lv_s S001, 4(a1);
+        //vpfxt [0,Y,Z,W];
+        //vcmp_s LT, S030, S030;
+        //vpfxs [-X,-Y,Z,W];
+        //vcmovf_p C000, C000, CC[0];
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+        //: : "{4}"(arg1), "{5}"(arg2), "{6}"(arg3), "{7}"(arg4) : "memory" : "volatile" 
+    //}
+    arg1
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector2Reflect(
+    arg1: *mut ScePspFVector2,
+    arg2: *mut ScePspFVector2,
+    arg3: *mut ScePspFVector2,
+) -> *mut ScePspFVector2 {
+    //vfpu_asm! {
+        //lv_s S010, 0(a1);
+        //lv_s S011, 4(a1);
+        //lv_s S020, 0(a2);
+        //lv_s S021, 4(a2);
+        //vdot_p S031, C010, C020;
+        //vfim_s S030, -2.0;
+        //vmul_s S032, S030, S031;
+        //vscl_p S032,S030,S031;
+        //vadd_p C000, C010, C020;
+        //vdot_p S033, C000, C000;
+        //vcmp_s EZ, S033, S033;
+        //vrsq_s S033, S033;
+        //vpfxs [0,Y,Z,W];
+        //vcmovt_s S033, S033, CC[0];
+        //vpfxd [-1:1, -1:1, M, M];
+        //vscl_p C000, C000, S033;
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+    //: : "{4}"(arg1), "{5}"(arg2), "{6}"(arg3) : "memory" : "volatile" 
+    //}
+    arg1
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector2Refract(
+    arg1: *mut ScePspFVector2,
+    arg2: *mut ScePspFVector2,
+    arg3: *mut ScePspFVector2,
+    sp: i32,
+) -> *mut ScePspFVector2 {
+    //vfpu_asm! {
+        //.mips "addiu sp, sp, -0x10";
+        //.mips "swc1 $$f12, 0($sp)";
+        //lv_s S010, 0(a1);
+        //lv_s S011, 4(a1);
+        //lv_s S020, 0(a2);
+        //lv_s S021, 4(a2);
+        //lv_s S030, 0(sp);
+        //vdot_p S031, C010, C020;
+        //vscl_p C010, C010, S030;
+        //vmul_s S032, S030, S030;
+        //vmul_s S033, S031, S031;
+        //vmul_s S031,S031,S030;
+	//vocp_s S033,S033;
+	//vmul_s S033,S032,S033;
+	//vocp_s S033,S033;
+	//vsqrt_s S033,S033;
+	//vsub_s S031,S031,S032;
+	//vscl_p C020,C020,S031;
+	//vadd_p C000,C010,C020;
+	//vdot_p S033,C000,C000;
+	//vcmp_p ES,C000,C000;
+	//vrsq_s S033,S033;
+	//vpfxd [-1:1,-1:1,M,M];
+	//vscl_p C000,C000,S033;
+	//vpfxs [0,0,Z,W];
+	//vcmovt_p C000,C000,CC[4];
+	//sv_s S000,0(a0);
+	//sv_s S001,4(a0);
+	//.mips "addiu sp, sp, 0x10";
+    //}
+    arg1
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Set(
+    x: f32,
+    y: f32,
+    z: f32,
+    vector3: *mut ScePspFVector3
+) -> *mut ScePspFVector3 {
+    (*vector3).x = x;
+    (*vector3).y = y;
+    (*vector3).z = z; 
+    vector3
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Copy(
+    dst: *mut ScePspFVector3,
+    src: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    let temp1 = (*src).z;
+    let temp2 = (*src).y;
+    (*dst).x = (*src).x;
+    (*dst).y = temp2;
+    (*dst).z = temp1;
+    dst 
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3PositiveZero(
+    vector3: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    (*vector3).x = 0.0;
+    (*vector3).y = 0.0;
+    (*vector3).z = 0.0;
+    vector3 
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3NegativeZero(
+    vector3: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    (*vector3).x  = f32::from_bits(0x8000_0000); 
+    (*vector3).y  = f32::from_bits(0x8000_0000);
+    (*vector3).z  = f32::from_bits(0x8000_0000);
+    vector3
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Ceil(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        lv_s S002, 8(a1);
+        vf2id_t C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        sv_s S002, 8(a0);
+        : : "{4}"(result), "{5}"(vector3) : "memory" : "volatile"
+    }
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Trunc(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        lv_s S002, 8(a1);
+        vf2iz_t C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        sv_s S002, 8(a0);
+        : : "{4}"(result), "{5}"(vector3) : "memory" : "volatile"
+    }
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Round(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        lv_s S002, 8(a1);
+        vf2in_t C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        sv_s S002, 8(a0);
+        : : "{4}"(vector3), "{5}"(result) : "memory" : "volatile"
+    }
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Floor(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        lv_s S002, 8(a1);
+        vf2iu_t C000, C000, 0;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        sv_s S002, 8(a0);
+        : : "{4}"(result), "{5}"(vector3) : "memory" : "volatile"
+    }
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3FromIVector(
+    src: *mut ScePspIVector3,
+    dst: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    (*dst).z = (*src).z as f32;
+    (*dst).y = (*src).y as f32;
+    (*dst).x = (*src).x as f32;
+    dst
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Add(
+    left_addend: *mut ScePspFVector3,
+    right_addend: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    vfpu_asm! {
+        lv_s S000, 0(a1);
+        lv_s S001, 4(a1);
+        lv_s S002, 8(a1);
+        lv_s S010, 0(a2);
+        lv_s S011, 4(a2);
+        lv_s S012, 8(a2);
+        vadd_t C000, C000, C010;
+        sv_s S000, 0(a0);
+        sv_s S001, 4(a0);
+        sv_s S002, 8(a0);
+        : : "{4}"(result), "{5}"(left_addend), "{6}"(right_addend) : "memory" : "volatile"
+    }
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Sub(
+    minuend: *mut ScePspFVector3,
+    subtrahend: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    //vfpu_asm! {
+        //lv_s S000, 0(a1);
+        //lv_s S001, 4(a1);
+        //lv_s S002, 8(a1);
+        //lv_s S010, 0(a2);
+        //lv_s S011, 4(a2);
+        //lv_s S012, 8(a2);
+        //vsub_t C000, C000, C010;
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+        //sv_s S002, 8(a0);
+        //: : "{4}"(result), "{5}"(left_addend), "{6}"(right_addend) : "memory" : "volatile"
+    //}
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Mul(
+    multiplicand: *mut ScePspFVector3,
+    multiplier: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    //vfpu_asm! {
+        //lv_s S000, 0(a1);
+        //lv_s S001, 4(a1);
+        //lv_s S002, 8(a1);
+        //lv_s S010, 0(a2);
+        //lv_s S011, 4(a2);
+        //lv_s S012, 8(a2);
+        //vmul_t C000, C000, C010;
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+        //sv_s S002, 8(a0);
+        //: : "{4}"(result), "{5}"(multiplicand), "{6}"(multiplier) : "memory" : "volatile"
+    //}
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Div(
+    dividend: *mut ScePspFVector3,
+    divisor: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    //vfpu_asm! {
+        //lv_s S010, 0(a1);
+        //lv_s S011, 4(a1);
+        //lv_s S012, 8(a1);
+        //lv_s S020, 0(a2);
+        //lv_s S021, 4(a2);
+        //lv_s S022, 8(a2);
+        //vdiv_t C000, C010, C020;
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+        //sv_s S002, 8(a0);
+        //: : "{4}"(result), "{5}"(dividend), "{6}"(divisor) : "memory" : "volatile"
+    //}
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Neg(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    (*result).z = 0.0 - (*vector3).z;
+    (*result).y = 0.0 - (*vector3).y;
+    (*result).x = 0.0 - (*vector3).x;
+    result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sceVfpuVector3Abs(
+    vector3: *mut ScePspFVector3,
+    result: *mut ScePspFVector3,
+) -> *mut ScePspFVector3 {
+    (*result).z = core::intrinsics::fabsf32((*vector3).z);
+    (*result).y = core::intrinsics::fabsf32((*vector3).y);
+    (*result).x = core::intrinsics::fabsf32((*vector3).x);
+    result
+}
+
+//#[no_mangle]
+//pub unsafe extern "C" fn sceVfpuVectorLerp(
+    //arg1: *mut ScePspFVector3,
+    //arg2: *mut ScePspFVector3,
+    //arg3: f32,
+    //result: *mut ScePspFVector3,
+//) -> *mut ScePspFVector3 {
+    //vfpu_asm! {
+        //.mips "mfc1 $$t0, $f12";
+        //mtv t0, S030;
+        //lv_s S010, 0(a1);
+        //lv_s S011, 4(a1);
+        //lv_s S012, 8(a1);
+        //lv_s S020, 0(a2);
+        //lv_s S021, 4(a2);
+        //lv_s S022, 8(a2);
+        //vsub_t C000, C020, C010;
+        //vscl_t C000, C000, S030;
+        //vadd_t C000, C010, C000;
+        //sv_s S000, 0(a0);
+        //sv_s S001, 4(a0);
+        //sv_s S002, 8(a0);
+        //: : "{4}"(result), "{5}"(arg1), "{6}"(arg2), "{8}"(arg3) : "memory" : "volatile"
+    //}
+    //result
+//}
 
 
 #[no_mangle]
-pub unsafe extern "C" fn sceVfpuColorAdd(arg1: *mut Color, arg2: *mut Color, arg3: *mut Color) -> *mut Color {
+pub unsafe extern "C" fn sceVfpuColorAdd(
+    left_addend: *mut Color, right_addend: *mut Color, result: *mut Color, 
+) -> *mut Color {
     vfpu_asm! {
         lv_q C010, 0(a1);
         lv_q C020, 0(a2);
         vadd_q C000, C010, C020;
         sv_q C000, 0(a0);
-        : : "{4}"(arg1), "{5}"(arg2), "{6}"(arg3) : "memory" : "volatile"
+        : : "{4}"(result), "{5}"(left_addend), "{6}"(right_addend) : "memory" : "volatile"
     }
-    arg1
+    result
 }
 
 #[no_mangle]
@@ -542,8 +908,8 @@ pub unsafe extern "C" fn sceVfpuColorSetRGB(
 }
 
 pub unsafe extern "C" fn sceVfpuColorCopy(
-    dst: *mut undefined4,
     src: *mut undefined4,
+    dst: *mut undefined4,
 ) -> *mut undefined4 {
     *dst = *src;
     *dst.offset(1) = *src.offset(1);
@@ -554,8 +920,8 @@ pub unsafe extern "C" fn sceVfpuColorCopy(
 
 #[no_mangle]
 pub unsafe extern "C" fn sceVfpuMemcpy(
-    mut dst8: *mut u8,
     mut src8: *const u8,
+    mut dst8: *mut u8,
     mut size: usize,
 ) -> *mut u8 {
     if size == 0 {
