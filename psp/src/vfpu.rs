@@ -2099,7 +2099,7 @@ macro_rules! instruction {
     };
 
     // vf2in.t 1101 0010 0 SSSSSSS 1 sssssss 0 ddddddd
-    (vf2in_t $d:ident, $s:ident) => {
+    (vf2in_t $d:ident, $s:ident, $scale:expr) => {
         concat!(
             "\n.byte ", $crate::register_triple!($d),
             "\n.byte 0x80 | ", $crate::register_triple!($s),
