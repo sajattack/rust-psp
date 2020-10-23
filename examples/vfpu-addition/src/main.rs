@@ -4,6 +4,9 @@
 
 psp::module!("vfpu_test", 1, 1);
 
+use psp::sys::sceVfpuVector4IsZero;
+use psp::sys::ScePspFVector4;
+
 fn vfpu_add(a: i32, b: i32) -> i32 {
     let out;
 
@@ -46,6 +49,8 @@ fn psp_main() {
     unsafe {
         use psp::sys::{self, ThreadAttributes};
         sys::sceKernelChangeCurrentThreadAttr(0, ThreadAttributes::VFPU);
+        // Call a random sceVfpu function so it doesn't get dropped from the binary
+        sceVfpuVector4IsZero(&mut ScePspFVector4{x: 0.0, y: 0.0, z: 0.0, w: 0.0 });
     }
 
     psp::dprintln!("Testing VFPU...");
