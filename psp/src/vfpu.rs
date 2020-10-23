@@ -476,7 +476,7 @@ macro_rules! instruction {
     // vdot.p 0110 0100 1 ttttttt 0 sssssss 1 ddddddd
     (vdot_p $d:ident, $s:ident, $t:ident) => {
         concat!(
-            "\n.byte 0x80 | ", $crate::register_pair!($d),
+            "\n.byte 0x80 | ", $crate::register_single!($d),
             "\n.byte ", $crate::register_pair!($s),
             "\n.byte 0x80 | ", $crate::register_pair!($t),
             "\n.byte 0b01100100",
@@ -486,7 +486,7 @@ macro_rules! instruction {
     // vdot.t 0110 0100 1 ttttttt 1 sssssss 0 ddddddd
     (vdot_t $d:ident, $s:ident, $t:ident) => {
         concat!(
-            "\n.byte ", $crate::register_triple!($d),
+            "\n.byte ", $crate::register_single!($d),
             "\n.byte 0x80 | ", $crate::register_triple!($s),
             "\n.byte 0x80 | ", $crate::register_triple!($t),
             "\n.byte 0b01100100",
@@ -496,7 +496,7 @@ macro_rules! instruction {
     // vdot.q 0110 0100 1 ttttttt 1 sssssss 1 ddddddd
     (vdot_q $d:ident, $s:ident, $t:ident) => {
         concat!(
-            "\n.byte 0x80 | ", $crate::register_quad!($d),
+            "\n.byte 0x80 | ", $crate::register_single!($d),
             "\n.byte 0x80 | ", $crate::register_quad!($s),
             "\n.byte 0x80 | ", $crate::register_quad!($t),
             "\n.byte 0b01100100",
@@ -1900,7 +1900,7 @@ macro_rules! instruction {
     // vfad.t 1101 0000 0 1000110 1 sssssss 0 ddddddd
     (vfad_t $d:ident, $s:ident) => {
         concat!(
-            "\n.byte ", $crate::register_triple!($d),
+            "\n.byte ", $crate::register_single!($d),
             "\n.byte 0x80 | ", $crate::register_triple!($s),
             "\n.byte 0b01000110",
             "\n.byte 0b11010000",
@@ -1920,7 +1920,7 @@ macro_rules! instruction {
     // vavg.p 1101 0000 0 1000111 0 sssssss 1 ddddddd
     (vavg_p $d:ident, $s:ident) => {
         concat!(
-            "\n.byte 0x80 | ", $crate::register_pair!($d),
+            "\n.byte 0x80 | ", $crate::register_single!($d),
             "\n.byte ", $crate::register_pair!($s),
             "\n.byte 0b01000111",
             "\n.byte 0b11010000",
@@ -1930,7 +1930,7 @@ macro_rules! instruction {
     // vavg.t 1101 0000 0 1000111 1 sssssss 0 ddddddd
     (vavg_t $d:ident, $s:ident) => {
         concat!(
-            "\n.byte ", $crate::register_triple!($d),
+            "\n.byte ", $crate::register_single!($d),
             "\n.byte 0x80 | ", $crate::register_triple!($s),
             "\n.byte 0b01000111",
             "\n.byte 0b11010000",
@@ -1940,7 +1940,7 @@ macro_rules! instruction {
     // vavg.q 1101 0000 0 1000111 1 sssssss 1 ddddddd
     (vavg_q $d:ident, $s:ident) => {
         concat!(
-            "\n.byte 0x80 | ", $crate::register_quad!($d),
+            "\n.byte 0x80 | ", $crate::register_single!($d),
             "\n.byte 0x80 | ", $crate::register_quad!($s),
             "\n.byte 0b01000111",
             "\n.byte 0b11010000",
