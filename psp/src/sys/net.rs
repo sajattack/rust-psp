@@ -2188,6 +2188,7 @@ psp_extern! {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct in_addr(pub u32);
 
 psp_extern! {

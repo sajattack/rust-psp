@@ -8,13 +8,13 @@ edition = "2018"
 psp = { path = "../../psp" }
 nb = "0.1.3"
 libc = "0.2"
-drogue-network = {git = "https://github.com/drogue-iot/drogue-network/"}
+drogue-network = { path = "./vendor/drogue-network" }
 
 
 [dependencies.drogue-tls]
-git = "https://github.com/drogue-iot/drogue-tls/"
+path = "./vendor/drogue-tls/drogue-tls"
 features = ["in-buffer-16k", "out-buffer-16k"]
 
 [patch.crates-io]
-drogue-tls-sys = {git = "https://github.com/drogue-iot/drogue-tls/"}
-drogue-network = {git = "https://github.com/drogue-iot/drogue-network/"}
+drogue-network = { path = "./vendor/drogue-network" }
+drogue-tls-sys = { path = "./vendor/drogue-tls/drogue-tls-sys" }
