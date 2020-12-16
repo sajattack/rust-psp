@@ -63,13 +63,13 @@ fn psp_main() {
     let secure_network = SslTcpStack::new(ssl_config, &network);
 
     let socket = secure_network.open(Mode::Blocking).unwrap();
-    let socket_addr = HostSocketAddr::from("69.192.95.136", 443).unwrap();
+    let socket_addr = HostSocketAddr::from("10.0.0.139", 4443).unwrap();
 
     psp::dprintln!("attempting connection");
     let mut socket = secure_network.connect(socket, socket_addr).unwrap();
     psp::dprintln!("connected!");
 
-    let result = secure_network.write(&mut socket, b"GET / HTTP/1.1\r\nhost:69.192.95.136\r\n\r\n").unwrap();
+    let result = secure_network.write(&mut socket, b"GET / HTTP/1.1\r\nhost:10.0.0.139\r\n\r\n").unwrap();
     psp::dprintln!("{:?}", result);
     //let result = secure_network.read(&mut buf,
 }
