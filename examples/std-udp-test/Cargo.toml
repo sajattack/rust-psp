@@ -1,0 +1,11 @@
+[package]
+name = "std-udp-test"
+version = "0.1.0"
+authors = ["Paul Sajna <sajattack@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+psp = { path = "../../psp", features=["std"] }
+
+[profile.release]
+debug = true
