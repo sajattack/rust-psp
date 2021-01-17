@@ -46,8 +46,6 @@ fn psp_main() {
             sin_family: AF_INET,
             sin_port: 6400u16.to_be(),
             sin_addr: in_addr,
-            //sin_addr: core::mem::transmute::<[u8;4], psp::sys::in_addr>([205, 250, 172, 72]),
-            sin_zero: [0u8; 8]
         };
         
         let sockaddr = core::mem::transmute::<sockaddr_in, psp::sys::sockaddr>(addr_in);
