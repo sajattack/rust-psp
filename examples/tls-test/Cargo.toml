@@ -8,13 +8,5 @@ edition = "2018"
 psp = { path = "../../psp" }
 nb = "0.1.3"
 libc = "0.2"
-drogue-network = { path = "./vendor/drogue-network" }
-
-
-[dependencies.drogue-tls]
-path = "./vendor/drogue-tls/drogue-tls"
-features = ["in-buffer-16k", "out-buffer-16k"]
-
-[patch.crates-io]
-drogue-network = { path = "./vendor/drogue-network" }
-drogue-tls-sys = { path = "./vendor/drogue-tls/drogue-tls-sys" }
+drogue-tls = { version = "0.2", default-features=false }
+#drogue-network = { path = "./vendor/drogue-network" }
