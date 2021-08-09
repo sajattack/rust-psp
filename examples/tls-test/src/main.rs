@@ -46,7 +46,7 @@ fn psp_main() {
 
     tls.open().expect("error establishing TLS connection");
 
-    tls.write(b"GET /a/check HTTP/1.1\r\nHost: www.example.com\r\nUser-Agent: A fucking PSP!\r\n\r\n").expect("error writing data");
+    tls.write(b"GET / HTTP/1.1\r\nHost: www.example.com\r\nUser-Agent: A fucking PSP!\r\n\r\n").expect("error writing data");
 
 
     let mut rx_buf = [0; 4096];
