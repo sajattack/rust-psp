@@ -2,25 +2,13 @@
 #![no_main]
 
 extern crate alloc;
-extern crate libc;
 
-mod ffi;
+use psp::sys;
 
-use core::str::FromStr;
-
-use alloc::alloc::{alloc, Layout};
-
-use drogue_tls::{
-    platform::SslPlatform,
-    entropy::StaticEntropySource,
-    ssl::config::{Preset, Transport, Verify},
-    net::tcp_stack::SslTcpStack,
-};
-
-use drogue_network::{
-    tcp::{Mode, TcpStack},
-    addr::HostSocketAddr
-};
+use drogue_tls::blocking::*;
+use drogue_network::addr::HostSocketAddr;
+use rand_chacha::ChaCha20Rng;
+use rand_chacha::rand_core::SeedableRng;
 
 psp::module!("tls-test", 1, 1);
 
@@ -42,36 +30,42 @@ fn psp_main() {
             psp::sys::sceKernelDelayThread(50_000);
         }
     }
+    
+    let socket = net::Socket::open().expect("failed to open socket");
+    socket.connect(HostSocketAddr::from("93.184.216.34", 443).expect("failed to create address")).expect("failed to connect socket");
+    let mut seed: u64 = 0;
+    unsafe { 
+        sys::sceRtcGetCurrentTick(&mut seed as *mut u64);
+    }
+    let rng = ChaCha20Rng::seed_from_u64(seed);
 
-    const HEAP_SIZE: usize = 65536;
+    let mut record_buffer = [0; 16384];
+    let tls_context = TlsContext::new(rng, &mut record_buffer).with_server_name("example.com");
+    let mut tls: TlsConnection<ChaCha20Rng, net::Socket, Aes128GcmSha256> =
+        TlsConnection::new(tls_context, socket);
 
-    let heap = unsafe {
-        alloc(Layout::from_size_align(HEAP_SIZE, 4).unwrap())
-    };
+    tls.open().expect("error establishing TLS connection");
 
-    let mut ssl_platform = SslPlatform::setup(
-        heap as *mut u8 as usize,
-    HEAP_SIZE).unwrap();
+    tls.write(b"GET /a/check HTTP/1.1\r\nHost: www.example.com\r\nUser-Agent: A fucking PSP!\r\n\r\n").expect("error writing data");
 
-    ssl_platform.entropy_context_mut().add_source(StaticEntropySource);
 
-    ssl_platform.seed_rng().unwrap();
+    let mut rx_buf = [0; 4096];
+    let sz = tls.read(&mut rx_buf).expect("error reading data");
+    unsafe {
+        let mut text = alloc::string::String::from_utf8_unchecked(rx_buf.to_vec());
+        text = text.replace("\r","");
+        text = text.replace("\0","");
+        psp::dprintln!("Read {} bytes: {}", sz, text);
+    }
 
-    let mut ssl_config = ssl_platform.new_client_config(Transport::Stream, Preset::Default).unwrap();
-    ssl_config.authmode(Verify::None);
-    let network = net::PspTcp::new();
-    let secure_network = SslTcpStack::new(ssl_config, &network);
-
-    let socket = secure_network.open(Mode::Blocking).unwrap();
-    let socket_addr = HostSocketAddr::from("10.0.0.139", 4443).unwrap();
-
-    psp::dprintln!("attempting connection");
-    let mut socket = secure_network.connect(socket, socket_addr).unwrap();
-    psp::dprintln!("connected!");
-
-    let result = secure_network.write(&mut socket, b"GET / HTTP/1.1\r\nhost:10.0.0.139\r\n\r\n").unwrap();
-    psp::dprintln!("{:?}", result);
-    //let result = secure_network.read(&mut buf,
+    let mut rx_buf = [0; 4096];
+    let sz = tls.read(&mut rx_buf).expect("error reading data");
+    unsafe {
+        let mut text = alloc::string::String::from_utf8_unchecked(rx_buf.to_vec());
+        text = text.replace("\r","");
+        text = text.replace("\0","");
+        psp::dprintln!("Read {} bytes: {}", sz, text);
+    }
 }
 
 unsafe fn load_modules() {
