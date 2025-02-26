@@ -6,6 +6,9 @@ mod graphics;
 extern crate alloc;
 
 use alloc::vec::Vec;
+use alloc::collections::BTreeMap;
+
+
 use core::f32::consts::TAU;
 use core::slice;
 
@@ -21,7 +24,7 @@ use fontdue;
 psp::module!("fontdue-scroller", 1, 0);
 
 const FONT: &[u8] = include_bytes!("../assets/Codystar-Regular.ttf") as &[u8];
-const TEXT: &'static str = "Rust-PSP";
+const TEXT: &'static str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 const BG_COLOR: u32 = 0xff00_0000;
 const FONT_COLOR: u32 = 0xff00_ffff;
 const LEN: usize = TEXT.len();
@@ -34,24 +37,6 @@ fn psp_main() {
     // Set up buffers
     let mut allocator = get_vram_allocator().unwrap();
     graphics::setup(&mut allocator);
-    let texture_buffer = allocator.alloc_texture_pixels(
-        (LEN * BUF_WIDTH) as u32,
-        BUF_HEIGHT as u32,
-        TexturePixelFormat::Psm8888,
-    );
-    let texture_buffer = unsafe {
-        slice::from_raw_parts_mut(
-            texture_buffer.as_mut_ptr_direct_to_vram() as *mut u32,
-            LEN as usize * BUF_WIDTH * BUF_HEIGHT,
-        )
-    };
-    let vertex_buffer = allocator.alloc_sized::<Vertex>(LEN as u32 * 2);
-    let vertex_buffer = unsafe {
-        slice::from_raw_parts_mut(
-            vertex_buffer.as_mut_ptr_direct_to_vram() as *mut Align4<Vertex>,
-            LEN * 2,
-        )
-    };
 
     // Load font
     let settings = fontdue::FontSettings {
@@ -74,14 +59,49 @@ fn psp_main() {
         .collect::<Vec<i32>>();
 
     // Get character bitmaps, padded to nearest multiple of 4 pixel width, skipping whitespace
-    let sprites: Vec<Option<(u32, Sprite)>> = TEXT
+    let sprite_map = TEXT
         .chars()
-        .enumerate()
+        .map(|letter| {
+            let (metrics, _) = font.rasterize(letter, 60.0);
+            let padded_width = (metrics.width + 3) & !3;
+
+            let sprite = Sprite::new(
+                FONT_COLOR,
+                0,
+                0,
+                metrics.width as u32,
+                metrics.height as u32,
+            );
+            (letter, (padded_width, sprite))
+        }).collect::<BTreeMap<char, (usize, Sprite)>>();
+
+
+    let vertex_buffer = allocator.alloc_sized::<Vertex>(LEN as u32 * 2);
+    let vertex_buffer = unsafe {
+        slice::from_raw_parts_mut(
+            vertex_buffer.as_mut_ptr_direct_to_vram() as *mut Align4<Vertex>,
+            LEN * 2,
+        )
+    };
+
+    let texture_buffer = allocator.alloc_texture_pixels(
+        (sprite_map.len() * BUF_WIDTH) as u32,
+        BUF_HEIGHT as u32,
+        TexturePixelFormat::Psm8888,
+    );
+    let texture_buffer = unsafe {
+        slice::from_raw_parts_mut(
+            texture_buffer.as_mut_ptr_direct_to_vram() as *mut u32,
+            sprite_map.len() * BUF_WIDTH * BUF_HEIGHT,
+        )
+    };
+
+
+    let texture_map = sprite_map.keys().enumerate()
         .map(|(i, letter)| {
-            if !letter.is_whitespace() {
-                let (metrics, bitmap) = font.rasterize(letter, 60.0);
-                let padded_width = (metrics.width + 3) & !3;
-                let diff = padded_width - metrics.width;
+            let (metrics, bitmap) = font.rasterize(*letter, 60.0);
+            if let Some((padded_width, _)) = sprite_map.get(letter) {
+                let diff = *padded_width - metrics.width;
 
                 let mut j = 0;
                 for (k, alpha) in bitmap.iter().enumerate() {
@@ -92,42 +112,36 @@ fn psp_main() {
                         0x00ff_ffff | (*alpha as u32) << 24;
                     j += 1;
                 }
-
-                let sprite = Sprite::new(
-                    FONT_COLOR,
-                    0,
-                    0,
-                    metrics.width as u32,
-                    metrics.height as u32,
-                );
-                Some((padded_width as u32, sprite))
-            } else {
-                None
             }
-        })
-        .collect();
+
+            (*letter, i)
+        }).collect::<BTreeMap<char, usize>>();
+
+
 
     // Draw chars in a sine wave scroller every frame
     let mut val = 80.0;
     loop {
         graphics::clear_color(BG_COLOR);
         let mut j = 0;
-        for i in 0..LEN {
-            if let Some(mut sprite) = sprites[i] {
-                sprite.1.set_pos(
-                    x_positions[i] + val as i32,
-                    100 + (20.0 * unsafe { sinf(j as f32 + val / TAU) }) as i32,
-                );
-                vertex_buffer[i * 2..i * 2 + 2].copy_from_slice(&sprite.1.as_vertices());
-                graphics::draw_vertices(
-                    &vertex_buffer[i * 2..i * 2 + 2],
-                    &texture_buffer[i * BUF_WIDTH * BUF_HEIGHT..(i + 1) * BUF_WIDTH * BUF_HEIGHT],
-                    sprite.0,
-                    BUF_WIDTH as u32,
-                    BUF_HEIGHT as u32,
-                    1.0,
-                    1.0,
-                );
+        for (i, letter) in TEXT.chars().enumerate() {
+            if let Some((width, mut sprite)) = sprite_map.get(&letter) {
+                if let Some(texture_index) = texture_map.get(&letter) {
+                    sprite.set_pos(
+                        x_positions[i] + val as i32,
+                        100 + (20.0 * unsafe { sinf(j as f32 + val / TAU) }) as i32,
+                    );
+                    vertex_buffer[i..i+2].copy_from_slice(&sprite.as_vertices());
+                    graphics::draw_vertices(
+                        &vertex_buffer[i..i+2],
+                        &texture_buffer[texture_index * BUF_WIDTH * BUF_HEIGHT..(texture_index + 1) * BUF_WIDTH * BUF_HEIGHT],
+                        *width as u32,
+                        BUF_WIDTH as u32,
+                        BUF_HEIGHT as u32,
+                        1.0,
+                        1.0,
+                    );
+                }
             }
             j += 1;
         }
